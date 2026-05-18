@@ -1,0 +1,11 @@
+[
+  { "id": 1, "img": "/assets/reviews/review-1.jpg" },
+  { "id": 2, "img": "/assets/reviews/review-2.jpg" },
+  { "id": 3, "img": "/assets/reviews/review-3.jpg" },
+  { "id": 4, "img": "/assets/reviews/review-4.jpg" },
+  { "id": 5, "img": "/assets/reviews/review-5.jpg" },
+  { "id": 6, "img": "/assets/reviews/review-6.jpg" },
+  { "id": 7, "img": "/assets/reviews/review-7.jpg" },
+  { "id": 8, "img": "/assets/reviews/review-8.jpg" },
+  { "id": 9, "img": "/assets/reviews/review-9.jpg" }
+]

@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    @apply bg-brand-cream text-brand-ink font-cairo antialiased;
+    line-height: 1.6;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-amiri font-bold text-brand-ink;
+    line-height: 1.25;
+  }
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  /* Container — mirrors the original site's max-w-1280 w/ fluid padding */
+  .akwab-container {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(16px, 3vw, 32px);
+    padding-right: clamp(16px, 3vw, 32px);
+  }
+
+  /* ---- Buttons ---- */
+  .btn {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-[15px] transition-all duration-300;
+  }
+  .btn-primary {
+    @apply bg-brand-pink text-white shadow-brand-md;
+  }
+  .btn-primary:hover {
+    @apply -translate-y-0.5 shadow-brand-lg;
+  }
+  .btn-outline {
+    @apply border-2 border-brand-ink/10 text-brand-ink bg-white/60;
+  }
+  .btn-outline:hover {
+    @apply bg-white border-brand-pink text-brand-pink;
+  }
+  .btn-gold {
+    @apply bg-brand-gold text-white shadow-brand-md;
+  }
+  .btn-gold:hover {
+    @apply -translate-y-0.5;
+  }
+  .btn-whats {
+    @apply bg-[#25D366] text-white;
+  }
+
+  /* ---- Product badge variants ---- */
+  .badge {
+    @apply absolute top-3 right-3 z-[2] px-3 py-1 text-xs font-bold rounded-full;
+  }
+  .badge-new {
+    @apply bg-brand-pink text-white;
+  }
+  .badge-hot {
+    @apply bg-brand-gold text-white;
+  }
+  .badge-sale {
+    @apply bg-[#D64545] text-white;
+  }
+
+  /* ---- Product card tile backgrounds (soft gradient washes) ---- */
+  .p-bg-1 {
+    background: linear-gradient(135deg, #fce8f0 0%, #f7d2e0 100%);
+  }
+  .p-bg-2 {
+    background: linear-gradient(135deg, #d8e8f3 0%, #b6d2e5 100%);
+  }
+  .p-bg-3 {
+    background: linear-gradient(135deg, #faf5e4 0%, #f0e3c4 100%);
+  }
+  .p-bg-4 {
+    background: linear-gradient(135deg, #efe3f0 0%, #d9c4dc 100%);
+  }
+
+  /* ---- Reveal (IntersectionObserver adds .in) ---- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---- Hero float animations ---- */
+  .float-1 { animation: float1 6s ease-in-out infinite; }
+  .float-2 { animation: float2 7s ease-in-out infinite; }
+  .float-3 { animation: float3 5.5s ease-in-out infinite; }
+  .float-4 { animation: float4 6.5s ease-in-out infinite; }
+
+  /* ---- Sale spinning badge ---- */
+  .spin-fwd  { animation: spin-badge 20s linear infinite; }
+  .spin-back { animation: spin-badge 20s linear infinite reverse; animation-delay: -10s; }
+}
+
+@keyframes float1 {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%       { transform: translateY(-14px) rotate(1deg); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translateY(0) rotate(2deg); }
+  50%       { transform: translateY(-10px) rotate(-1deg); }
+}
+@keyframes float3 {
+  0%, 100% { transform: translateY(0) rotate(1deg); }
+  50%       { transform: translateY(-12px) rotate(-2deg); }
+}
+@keyframes float4 {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%       { transform: translateY(-16px) rotate(2deg); }
+}
+@keyframes spin-badge {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
