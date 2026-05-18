@@ -83,7 +83,7 @@ export default function ProductCard({ product }) {
                 <path d="M5 6h16l-2 11H7Z" />
                 <path d="M9 6a3 3 0 0 1 6 0" />
               </svg>
-              أضيفي للسلة
+              أضف للسلة
             </>
           )}
         </button>

@@ -13,14 +13,9 @@ const TikTokIcon = () => (
     <path d="M16 3v2.5a5.5 5.5 0 0 0 5 5.5v3a8 8 0 0 1-5-1.8V17a6 6 0 1 1-6-6h1v3h-1a3 3 0 1 0 3 3V3z" />
   </svg>
 );
-const SnapchatIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]">
-    <path d="M12 3a5 5 0 0 1 5 5v3c1 .5 2 1.2 3 1.2-.5 1-1.8 1.3-3 1.6.3 1.3 1.5 3 3.5 3.5-1 .8-2.5.5-3.8 1-.3 1-.5 1.7-1.2 1.7-1 0-1.5-1-3.5-1s-2.5 1-3.5 1c-.7 0-.9-.7-1.2-1.7-1.3-.5-2.8-.2-3.8-1 2-.5 3.2-2.2 3.5-3.5-1.2-.3-2.5-.6-3-1.6 1 0 2-.7 3-1.2V8a5 5 0 0 1 5-5Z" />
-  </svg>
-);
-const PinterestIcon = () => (
+const FacebookIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-[18px] h-[18px]">
-    <path d="M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.3-5.5s-.3-.7-.3-1.6c0-1.5.9-2.6 2-2.6.9 0 1.4.7 1.4 1.5 0 .9-.6 2.3-.9 3.6-.3 1 .5 1.9 1.6 1.9 1.9 0 3.3-2 3.3-4.8 0-2.5-1.8-4.3-4.4-4.3-3 0-4.8 2.2-4.8 4.6 0 .9.3 1.9.8 2.4.1.1.1.2.1.3l-.3 1.2c0 .2-.2.2-.4.1-1.3-.6-2.1-2.5-2.1-4 0-3.2 2.3-6.2 6.7-6.2 3.5 0 6.3 2.5 6.3 5.9 0 3.5-2.2 6.3-5.3 6.3-1 0-2-.5-2.3-1.2l-.6 2.4c-.2.9-.9 2-1.3 2.7A10 10 0 1 0 12 2Z" />
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
 const EmailIcon = () => (
@@ -42,23 +37,18 @@ const LocationIcon = () => (
 const SOCIALS = [
   { label: 'إنستغرام', Icon: InstagramIcon, href: 'https://www.instagram.com/akwab_official_/' },
   { label: 'تيك توك',  Icon: TikTokIcon,    href: 'https://www.tiktok.com/@akwab_official' },
-  { label: 'سناب شات', Icon: SnapchatIcon,   href: 'https://www.snapchat.com/add/akwab_official' },
-  { label: 'بنترست',   Icon: PinterestIcon,  href: 'https://www.pinterest.com/akwab_official' },
+  { label: 'فيسبوك',   Icon: FacebookIcon,  href: 'https://www.facebook.com/share/1JRzZ2ggrL/' },
 ];
 
 const SHOP_LINKS = [
   { label: 'كل المنتجات',   to: '/shop' },
-  { label: 'خزف',           to: '/category/pottery' },
-  { label: 'بورسلين',       to: '/category/porcelain' },
-  { label: 'زجاج',          to: '/category/glass' },
-  { label: 'حسب الطلب',     to: '/category/custom' },
 ];
 
 const HELP_LINKS = [
   { label: 'الأسئلة الشائعة',    to: '/faq' },
   { label: 'الشحن والتوصيل',     to: '/faq' },
   { label: 'سياسة الإرجاع',      to: '/faq' },
-  { label: 'تواصلي معنا',        to: '/contact' },
+  { label: 'تواصل معنا',         to: '/contact' },
   { label: 'تتبّع طلبك',         to: '/profile' },
 ];
 
@@ -105,14 +95,14 @@ export default function Footer() {
           </div>
 
           {/* Shop column */}
-          <FooterCol title="تسوّقي" links={SHOP_LINKS} />
+          <FooterCol title="تسوّق" links={SHOP_LINKS} />
 
           {/* Help column */}
           <FooterCol title="المساعدة" links={HELP_LINKS} />
 
           {/* Contact column */}
           <div>
-            <FooterHeading>تواصلي معنا</FooterHeading>
+            <FooterHeading>تواصل معنا</FooterHeading>
             <ul className="flex flex-col gap-3 text-sm" style={{ color: '#B5A3BA' }}>
               <li>
                 <a href="mailto:hello@akwab.shop" className="flex items-start gap-2.5 hover:text-brand-pink transition-colors">
@@ -134,7 +124,6 @@ export default function Footer() {
               <FooterHeading>روابط سريعة</FooterHeading>
               <ul className="flex flex-col gap-2.5 text-sm" style={{ color: '#B5A3BA' }}>
                 <li><Link to="/about" className="hover:text-brand-pink transition-colors">من نحن</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-pink transition-colors">المدونة</Link></li>
                 <li><Link to="/auth" className="hover:text-brand-pink transition-colors">تسجيل الدخول</Link></li>
                 <li><Link to="/wishlist" className="hover:text-brand-pink transition-colors">المفضلة</Link></li>
               </ul>
@@ -145,9 +134,9 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-wrap justify-between items-center gap-4 pt-6 border-t text-xs"
           style={{ borderColor: 'rgba(255,255,255,.08)', color: '#8E7D93' }}>
-          <span>© ٢٠٢٦ أكواب. جميع الحقوق محفوظة — صُنع بحبٍّ في القاهرة.</span>
+          <span>© ٢٠٢٦ أكواب. جميع الحقوق محفوظة — صُنع بحبٍّ.</span>
           <div className="flex gap-2 flex-wrap items-center">
-            {['فيزا', 'ماستركارد', 'فودافون كاش', 'انستاباي', 'الدفع عند الاستلام'].map((p) => (
+            {['فيزا', 'فودافون كاش', 'انستاباي', 'الدفع عند الاستلام'].map((p) => (
               <span key={p} className="px-3 py-1 rounded-lg text-[11px] font-semibold"
                 style={{ background: 'rgba(255,255,255,.06)', color: '#B5A3BA' }}>
                 {p}

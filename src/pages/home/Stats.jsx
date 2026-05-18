@@ -1,6 +1,6 @@
 const STATS = [
   {
-    num: '+١٢ ألف',
+    num: '+٥٠٠٠ ',
     lbl: 'عميلة سعيدة',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -10,7 +10,7 @@ const STATS = [
     ),
   },
   {
-    num: '+٥٠٠',
+    num: '+٢٠٠',
     lbl: 'تصميم حصري',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -30,7 +30,7 @@ const STATS = [
     ),
   },
   {
-    num: '٤٨ ساعة',
+    num: 'من 3 الى 5 أيام',
     lbl: 'توصيل لكل محافظات مصر',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">

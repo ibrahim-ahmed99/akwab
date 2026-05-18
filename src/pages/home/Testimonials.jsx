@@ -21,7 +21,6 @@ export default function Testimonials() {
       <div className="akwab-container">
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
           <SectionHead
-            kicker="شهادات العميلات"
             title="ما تقوله عميلاتنا"
             desc="ريفيوز حقيقية من عميلاتنا — بالصور."
             className="mb-0"

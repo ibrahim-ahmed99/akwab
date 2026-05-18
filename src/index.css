@@ -106,7 +106,7 @@
 
   /* ---- Sale spinning badge ---- */
   .spin-fwd  { animation: spin-badge 20s linear infinite; }
-  .spin-back { animation: spin-badge 20s linear infinite reverse; animation-delay: -10s; }
+  .spin-back { animation: spin-badge 20s linear infinite reverse; }
 }
 
 @keyframes float1 {

@@ -4,13 +4,13 @@ import { SectionHead } from '../../components/SectionHead.jsx';
 const VALUES = [
   {
     icon: <HandIcon />,
-    title: 'صناعة يدوية',
-    desc: 'كل قطعة تُشكَّل باليد من بداية الطين حتى اللمسة الأخيرة من الألوان.',
+    title: ' حفر ليزر حسب الطلب',
+    desc: 'يمكنك اضافة جملة أو تصميم داخل أو خارج الكوب حسب الرغبة.',
   },
   {
     icon: <HeartIcon />,
-    title: 'بمحبة من القاهرة',
-    desc: 'ورشتنا في قلب القاهرة. نُصدّر البهجة لكل ربوع مصر.',
+    title: ' الطباعة والرسم ',
+    desc: 'لدينا مجموعة من الأكواب والفناجين السادة يمكنك طباعة أو رسم التصميم حسب .ذوقك',
   },
   {
     icon: <LeafIcon />,
@@ -20,7 +20,7 @@ const VALUES = [
   {
     icon: <StarIcon />,
     title: 'جودة لا تُساوم',
-    desc: 'كل كوب يمر بمراحل فحص دقيقة قبل أن يصل إليكِ بعلبة هديتك المميزة.',
+    desc: 'كل كوب يمر بمراحل فحص دقيقة قبل أن يصل إليك .',
   },
 ];
 
@@ -44,47 +44,34 @@ export default function About() {
         <Petal className="absolute top-1/2 left-8 text-3xl opacity-20 rotate-45">✿</Petal>
 
         <div className="akwab-container max-w-3xl text-center relative z-10">
-          <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-            من نحن
-          </p>
+         
           <h1 className="text-[clamp(36px,5vw,64px)] mb-6 leading-tight">
-            قصة كوب.. وحكاية حب
+          قصة أكواب
           </h1>
           <p className="text-brand-ink-soft text-[18px] leading-relaxed max-w-2xl mx-auto">
             بدأت أكواب كفكرة بسيطة: أن كل لحظة قهوة تستحق كوباً يليق بها.
-            من ورشة صغيرة في القاهرة، إلى آلاف البيوت المصرية — نحمل معنا شغف الصناعة اليدوية وعشق التفاصيل.
+           — نحمل معنا شغف الصناعة اليدوية وعشق التفاصيل.
           </p>
         </div>
       </section>
 
       {/* Story */}
       <section className="py-20">
-        <div className="akwab-container max-w-5xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="reveal">
-              <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-                الحكاية
-              </p>
-              <h2 className="text-[clamp(28px,3.5vw,44px)] mb-5">
-                من يد الفنانة إلى يديكِ
-              </h2>
-              <p className="text-brand-ink-soft leading-relaxed mb-4">
-                في عام ٢٠٢٢، قررت سارة — مصممة الخزف — أن تترك وظيفتها وتُحوّل شغفها إلى مشروع حقيقي.
-                بدأت بمنضدة صغيرة ودولاب طين، واليوم تُشغّل ورشة كاملة بفريق من الفنانات الموهوبات.
-              </p>
-              <p className="text-brand-ink-soft leading-relaxed mb-6">
-                كل قطعة تمر بأيدٍ كثيرة قبل أن تصل إليكِ: من العجن والتشكيل، إلى الفرن والتزجيج،
-                وصولاً إلى التلوين اليدوي والتغليف بعلبة هدية تليق بالمناسبة.
-              </p>
-              <Link to="/shop" className="btn btn-primary">تسوّقي معنا</Link>
-            </div>
-            <div className="reveal grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map(n => (
-                <div key={n} className={`rounded-brand overflow-hidden aspect-square p-bg-${n}`}>
-                  <div className="w-full h-full flex items-center justify-center text-5xl opacity-30">🏺</div>
-                </div>
-              ))}
-            </div>
+        <div className="akwab-container max-w-3xl text-center">
+          <div className="reveal">
+            <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
+              الحكاية
+            </p>
+            <h2 className="text-[clamp(28px,3.5vw,44px)] mb-6">
+              من يد الفنانة إلى يديك
+            </h2>
+            <p className="text-brand-ink-soft leading-relaxed mb-4 text-[17px]">
+              بدأت رحلة أكواب في عام 2023 انطلاقًا من شغف حقيقي بعالم الأكواب والتفاصيل التي تجعل كل قطعة تحمل طابعًا خاصًا وفريدًا. جاءت الفكرة بهدف إتاحة مساحة لكل شخص ليصمم كوبه بالطريقة التي تعبّر عنه بالكامل، سواء من خلال اختيار الألوان، الرسومات، أو إضافة عبارات محفورة داخل أو خارج الكوب.
+            </p>
+            <p className="text-brand-ink-soft leading-relaxed mb-8 text-[17px]">
+              في أكواب نؤمن أن الهدية لا تُقاس بقيمتها المادية فقط، بل بالمشاعر والذكريات التي تحملها. لذلك نعمل على تحويل كل كوب إلى قطعة شخصية مميزة، يمكن أن تكون هدية للنفس أو لمن نحب، لتبقى ذكرى جميلة تدوم مع الوقت وتعكس مشاعر صادقة لا تُنسى.
+            </p>
+            <Link to="/shop" className="btn btn-primary">تسوّق معنا</Link>
           </div>
         </div>
       </section>

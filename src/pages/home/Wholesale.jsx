@@ -62,7 +62,7 @@ const QUANTITIES = [
 ];
 
 const FIELD =
-  "px-4 py-3 rounded-[12px] border border-brand-line font-cairo text-sm text-brand-ink bg-brand-cream outline-none transition-all duration-200 focus:border-brand-pink focus:bg-white focus:shadow-[0_0_0_3px_rgba(224,71,138,.1)] w-full";
+  "px-4 py-3 rounded-[12px] border border-brand-line font-cairo text-sm text-brand-ink bg-brand-cream outline-none transition-all duration-200 focus:border-brand-pink focus:bg-white focus:shadow-[0_0_0_3px_rgba(224,71,138,.1)] w-full max-w-full block";
 
 export default function Wholesale() {
   const [sent, setSent] = useState(false);
@@ -77,14 +77,9 @@ export default function Wholesale() {
             background: "linear-gradient(135deg, #FAF5E4 0%, #FCE8F0 100%)",
           }}
         >
-          <div className="grid md:grid-cols-2">
+          <div className="grid md:grid-cols-2 min-w-0">
             {/* ── الجانب الأيمن: showcase ── */}
-            <div className="p-[clamp(36px,5vw,60px)] flex flex-col gap-5">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2.5 bg-white px-4 py-2 rounded-full text-sm font-semibold text-brand-gold border border-brand-line self-start">
-                <span className="w-2 h-2 rounded-full bg-brand-gold shadow-[0_0_0_4px_rgba(200,168,75,.2)]" />
-                للمحلات والموزّعين
-              </div>
+            <div className="p-5 md:p-[clamp(36px,5vw,60px)] flex flex-col gap-4 md:gap-5 min-w-0">
 
               {/* Heading */}
               <h2 className="text-[clamp(26px,3.5vw,38px)] leading-snug m-0">
@@ -135,7 +130,7 @@ export default function Wholesale() {
                 e.preventDefault();
                 setSent(true);
               }}
-              className="flex flex-col gap-3.5 border-r border-brand-line p-[clamp(32px,4vw,48px)] bg-white"
+              className="flex flex-col gap-3.5 border-t md:border-t-0 md:border-r border-brand-line p-5 sm:p-[clamp(28px,4vw,48px)] bg-white min-w-0 overflow-hidden"
             >
               <h3 className="text-[22px] mb-1">املئي النموذج</h3>
               <p className="text-sm text-brand-ink-soft mb-2.5">
@@ -154,7 +149,7 @@ export default function Wholesale() {
                 />
               </label>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1.5">
                   <span className="text-[13px] font-semibold text-brand-ink">
                     الموبايل / واتساب
@@ -272,8 +267,11 @@ function ShowcaseCarousel({ items, onOpen }) {
         mask: "linear-gradient(to right, transparent, #000 8%, #000 92%, transparent)",
       }}
     >
+      {/* على الموبايل: صف واحد بس — على الديسكتوب: صفين */}
       <MarqueeRow items={doubled} direction="left" onOpen={onOpen} />
-      <MarqueeRow items={doubled} direction="right" onOpen={onOpen} />
+      <div className="hidden md:block">
+        <MarqueeRow items={doubled} direction="right" onOpen={onOpen} />
+      </div>
     </div>
   );
 }
@@ -298,7 +296,7 @@ function MarqueeRow({ items, direction, onOpen }) {
         <button
           key={i}
           onClick={() => onOpen(item)}
-          style={{ flexShrink: 0, width: 88, height: 88 }}
+          style={{ flexShrink: 0, width: 'clamp(72px, 18vw, 88px)', height: 'clamp(72px, 18vw, 88px)' }}
           className="group relative rounded-[14px] overflow-hidden border-2 border-white shadow-sm focus:outline-none"
         >
           <img

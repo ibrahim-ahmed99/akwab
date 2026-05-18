@@ -9,8 +9,7 @@ const NAV_LINKS = [
   { to: '/',        label: 'الرئيسية',    end: true },
   { to: '/shop',    label: 'المتجر'               },
   { to: '/about',   label: 'من نحن'               },
-  { to: '/blog',    label: 'المدونة'              },
-  { to: '/contact', label: 'تواصلي معنا'          },
+  { to: '/contact', label: 'تواصل معنا'           },
 ];
 
 export default function Nav() {

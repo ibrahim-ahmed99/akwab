@@ -12,20 +12,15 @@ export default function Hero() {
 
       <div className="akwab-container grid md:grid-cols-[1.1fr_1fr] gap-12 md:gap-16 items-center relative">
         <div className="reveal">
-          <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-brand-pink-soft text-brand-pink text-sm font-semibold shadow-brand-sm mb-5">
-            <span className="w-2 h-2 rounded-full bg-brand-pink" />
-            مجموعة الربيع ٢٠٢٦
-          </span>
           <h1 className="text-[clamp(36px,5.5vw,68px)] font-bold leading-[1.15] my-5">
             كل كوب
             <br />
-            <span className="text-brand-pink italic relative inline-block">يحكي قصةً</span>{' '}
+            <span className="text-brand-pink italic relative inline-block">يحكي قصة</span>{' '}
             جميلة
           </h1>
           <p className="text-[clamp(16px,1.4vw,19px)] text-brand-ink-soft max-w-[540px] mb-8">
-            أكواب فنية مصنوعة بعناية، من البورسلين الناعم ورسومات مائية رقيقة. اصنعي لحظاتك الصغيرة
-            جميلة — مع كل رشفة.
-          </p>
+كل كوب يحكي قصة فريدة ، اكواب فنية مصنوعة بعناية من الخزف والبورسلين بتصميمات خاصة  
+, اصنعي لحظاتك المميزة مع كل رشفة          </p>
           <div className="flex flex-wrap gap-3">
             <Link to="/shop" className="btn btn-primary">
               تسوّقي الآن
@@ -33,7 +28,6 @@ export default function Hero() {
                 <path d="M19 12H5M11 18l-6-6 6-6" />
               </svg>
             </Link>
-            <a href="#cats" className="btn btn-outline">استكشفي الفئات</a>
           </div>
         </div>
 

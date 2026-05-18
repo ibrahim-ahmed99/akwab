@@ -13,9 +13,9 @@ export default function Wishlist() {
         <div className="text-7xl mb-6">🤍</div>
         <h1 className="text-4xl mb-4">قائمة المفضلة فارغة</h1>
         <p className="text-brand-ink-soft mb-8 max-w-sm mx-auto">
-          احفظي القطع اللي تعجبك بالضغط على 🤍 في أي منتج، وستظهر هنا.
+          احفظ القطع اللي تعجبك بالضغط على 🤍 في أي منتج، وستظهر هنا.
         </p>
-        <Link to="/shop" className="btn btn-primary">ابدئي التسوّق</Link>
+        <Link to="/shop" className="btn btn-primary">ابدأ التسوق</Link>
       </div>
     );
   }
@@ -129,7 +129,7 @@ function WishlistCard({ product, onRemove }) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                   <path d="M5 6h16l-2 11H7Z" /><path d="M9 6a3 3 0 0 1 6 0" />
                 </svg>
-                أضيفي للسلة
+                أضف للسلة
               </>
             )}
           </button>

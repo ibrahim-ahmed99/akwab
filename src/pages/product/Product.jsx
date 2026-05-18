@@ -88,10 +88,9 @@ export default function Product() {
             <div className="bg-white rounded-brand p-6 mb-6 shadow-brand-sm">
               <h3 className="text-lg mb-3">التفاصيل</h3>
               <ul className="space-y-2 text-sm text-brand-ink-soft">
-                <li>✓ صناعة يدوية في القاهرة</li>
-                <li>✓ آمن للاستخدام مع الميكروويف</li>
-                <li>✓ يأتي في علبة هدية مميزة</li>
-                <li>✓ شحن خلال ٤٨ ساعة لكل محافظات مصر</li>
+                <li> صناعة يدوية</li>
+                <li> آمن للاستخدام مع الميكروويف</li>
+                <li>الشحن خلال من 3 الى 5 أيام عمل غير شامل الجمعة والسبت والاجازات الرسمية </li>
               </ul>
             </div>
 
@@ -104,7 +103,7 @@ export default function Product() {
                     </svg>
                     تمت الإضافة
                   </>
-                ) : 'أضيفي للسلة'}
+                ) : 'أضف للسلة'}
               </button>
               <button
                 onClick={() => toggle(product)}
