@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
 import { SectionHead } from '../../components/SectionHead.jsx';
 import REVIEWS from '../../services/static/reviews.json';
+import { useLang } from '../../context/LanguageContext.jsx';
 
 export default function Testimonials() {
+  const { t } = useLang();
   const [lightbox, setLightbox] = useState(null);
   const trackRef = useRef(null);
 
@@ -21,18 +23,16 @@ export default function Testimonials() {
       <div className="akwab-container">
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
           <SectionHead
-            title="ما تقوله عميلاتنا"
-            desc="ريفيوز حقيقية من عميلاتنا — بالصور."
+            title={t('testimonials.title')}
+            desc={t('testimonials.desc')}
             className="mb-0"
           />
-          {/* الأسهم: ← يسار  /  → يمين */}
           <div className="flex gap-2 flex-shrink-0" dir="ltr">
-            <ArrowBtn label="←" onClick={() => scroll(-1)} aria="تمرير لليسار" />
-            <ArrowBtn label="→" onClick={() => scroll(1)}  aria="تمرير لليمين" />
+            <ArrowBtn label="←" onClick={() => scroll(-1)} aria={t('testimonials.scrollLeft')} />
+            <ArrowBtn label="→" onClick={() => scroll(1)}  aria={t('testimonials.scrollRight')} />
           </div>
         </div>
 
-        {/* dir="ltr" يضمن اتجاه scroll صحيح بغض النظر عن RTL الصفحة */}
         <div
           ref={trackRef}
           dir="ltr"
@@ -49,7 +49,7 @@ export default function Testimonials() {
             >
               <img
                 src={r.img}
-                alt="ريفيو عميلة"
+                alt={t('testimonials.reviewAlt')}
                 className="w-full h-auto block"
                 loading="lazy"
               />
@@ -58,7 +58,6 @@ export default function Testimonials() {
         </div>
       </div>
 
-      {/* Lightbox */}
       {lightbox && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -67,7 +66,7 @@ export default function Testimonials() {
         >
           <img
             src={lightbox}
-            alt="ريفيو عميلة"
+            alt={t('testimonials.reviewAlt')}
             className="max-h-[90vh] max-w-[90vw] rounded-brand shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />

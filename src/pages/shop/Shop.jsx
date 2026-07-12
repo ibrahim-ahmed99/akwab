@@ -2,34 +2,36 @@ import { useState } from 'react';
 import { useProducts, useCategories } from '../../hooks/useProducts.js';
 import ProductCard from '../../components/ProductCard.jsx';
 import { SectionHead } from '../../components/SectionHead.jsx';
+import { useLang } from '../../context/LanguageContext.jsx';
 
 export default function Shop() {
+  const { t } = useLang();
   const [cat, setCat] = useState('all');
   const cats = useCategories();
   const { data, loading } = useProducts(cat);
-  const tabs = [{ slug: 'all', name: 'الكل' }, ...cats];
+  const tabs = [{ slug: 'all', name: t('shop.all') }, ...cats];
 
   return (
     <section className="py-12">
       <div className="akwab-container">
         <SectionHead
-          kicker="كل المنتجات"
-          title="المتجر"
-          desc="تصفحي كل تشكيلاتنا — من الخزف الدافئ إلى البورسلين الراقي."
+          kicker={t('shop.kicker')}
+          title={t('shop.title')}
+          desc={t('shop.desc')}
         />
 
         <div className="reveal flex flex-wrap gap-2 justify-center mb-10">
-          {tabs.map((t) => (
+          {tabs.map((tab) => (
             <button
-              key={t.slug}
-              onClick={() => setCat(t.slug)}
+              key={tab.slug}
+              onClick={() => setCat(tab.slug)}
               className={`px-5 py-2.5 rounded-full font-medium text-sm transition-all ${
-                cat === t.slug
+                cat === tab.slug
                   ? 'bg-brand-pink text-white shadow-brand-md'
                   : 'bg-white text-brand-ink hover:bg-brand-pink-softer hover:text-brand-pink border border-brand-line'
               }`}
             >
-              {t.name}
+              {tab.name}
             </button>
           ))}
         </div>

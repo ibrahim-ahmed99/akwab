@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useWishlist } from '../../context/WishlistContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
 import { toArabicDigits, starsStr } from '../../utils/arabic.js';
+import { useLang } from '../../context/LanguageContext.jsx';
 
 const MOCK_USER = {
   name: 'نور أحمد',
@@ -53,25 +54,27 @@ const STATUS_STYLE = {
   cancelled: 'bg-[#fde8e8] text-[#D64545]',
 };
 
-const TABS = [
-  { id: 'orders',   label: 'طلباتي',     icon: <BoxIcon /> },
-  { id: 'wishlist', label: 'المفضلة',    icon: <HeartIcon /> },
-  { id: 'settings', label: 'بياناتي',   icon: <UserIcon /> },
-];
-
 export default function Profile() {
+  const { t, lang } = useLang();
   const { user } = useAuth();
   const [tab, setTab] = useState('orders');
+  const fmt = (n) => lang === 'ar' ? toArabicDigits(n) : String(n);
+
+  const TABS = [
+    { id: 'orders',   label: t('profile.ordersTab'),   icon: <BoxIcon /> },
+    { id: 'wishlist', label: t('profile.wishlistTab'),  icon: <HeartIcon /> },
+    { id: 'settings', label: t('profile.settingsTab'),  icon: <UserIcon /> },
+  ];
 
   if (!user) {
     return (
       <div className="akwab-container py-24 text-center max-w-md">
         <div className="text-6xl mb-6">🔒</div>
-        <h1 className="text-3xl mb-3">يرجى تسجيل الدخول</h1>
-        <p className="text-brand-ink-soft mb-8">سجّلي دخولك للوصول لملفك الشخصي وطلباتك.</p>
+        <h1 className="text-3xl mb-3">{t('profile.loginRequired')}</h1>
+        <p className="text-brand-ink-soft mb-8">{t('profile.loginDesc')}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/auth" className="btn btn-primary justify-center">تسجيل الدخول</Link>
-          <Link to="/shop" className="btn btn-outline justify-center">تسوّقي بدون حساب</Link>
+          <Link to="/auth" className="btn btn-primary justify-center">{t('profile.loginBtn')}</Link>
+          <Link to="/shop" className="btn btn-outline justify-center">{t('profile.guestShop')}</Link>
         </div>
       </div>
     );
@@ -88,29 +91,29 @@ export default function Profile() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl mb-0.5">{user.name}</h1>
-            <p className="text-sm text-brand-ink-soft">عضوة منذ {MOCK_USER.joinDate}</p>
+            <p className="text-sm text-brand-ink-soft">{t('profile.memberSince')} {MOCK_USER.joinDate}</p>
           </div>
           <div className="flex gap-3 text-center">
-            <Stat num={toArabicDigits(MOCK_ORDERS.length)} label="طلب" />
+            <Stat num={fmt(MOCK_ORDERS.length)} label={t('profile.ordersLabel')} />
             <div className="w-px bg-brand-line" />
-            <Stat num={toArabicDigits(MOCK_ORDERS.filter(o => o.kind === 'delivered').length)} label="مُسلَّم" />
+            <Stat num={fmt(MOCK_ORDERS.filter(o => o.kind === 'delivered').length)} label={t('profile.deliveredLabel')} />
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-brand p-1.5 shadow-brand-sm mb-8 overflow-x-auto">
-          {TABS.map(t => (
+          {TABS.map(tabItem => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tabItem.id}
+              onClick={() => setTab(tabItem.id)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-1 justify-center ${
-                tab === t.id
+                tab === tabItem.id
                   ? 'bg-brand-pink text-white shadow-brand-md'
                   : 'text-brand-ink-soft hover:text-brand-ink'
               }`}
             >
-              <span className={tab === t.id ? 'text-white' : 'text-brand-ink-soft'}>{t.icon}</span>
-              {t.label}
+              <span className={tab === tabItem.id ? 'text-white' : 'text-brand-ink-soft'}>{tabItem.icon}</span>
+              {tabItem.label}
             </button>
           ))}
         </div>
@@ -127,6 +130,7 @@ export default function Profile() {
 
 /* ── Orders ── */
 function OrdersTab() {
+  const { t } = useLang();
   const [open, setOpen] = useState(null);
 
   return (
@@ -139,7 +143,7 @@ function OrdersTab() {
             className="w-full flex items-center justify-between gap-4 p-5 text-right"
           >
             <div className="flex items-center gap-4 flex-wrap">
-              <span className="font-semibold">طلب #{order.id}</span>
+              <span className="font-semibold">#{order.id}</span>
               <span className="text-sm text-brand-ink-soft">{order.date}</span>
               <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_STYLE[order.kind]}`}>
                 {order.status}
@@ -165,11 +169,11 @@ function OrdersTab() {
                 </div>
               ))}
               <div className="flex justify-between text-sm pt-2 border-t border-brand-line mt-2">
-                <span className="text-brand-ink-soft">الشحن</span>
+                <span className="text-brand-ink-soft">{t('cart.shipping')}</span>
                 <span className="font-medium">٦٠ ج.م</span>
               </div>
               <div className="flex justify-between font-bold">
-                <span>الإجمالي</span>
+                <span>{t('cart.total')}</span>
                 <span className="text-brand-pink">{order.total}</span>
               </div>
             </div>
@@ -180,9 +184,9 @@ function OrdersTab() {
       {MOCK_ORDERS.length === 0 && (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">📦</div>
-          <h3 className="text-xl mb-2">لا توجد طلبات بعد</h3>
-          <p className="text-brand-ink-soft text-sm mb-6">ابدئي تسوّقك وسيظهر طلبك هنا.</p>
-          <Link to="/shop" className="btn btn-primary">تسوّقي الآن</Link>
+          <h3 className="text-xl mb-2">{t('profile.noOrders')}</h3>
+          <p className="text-brand-ink-soft text-sm mb-6">{t('profile.noOrdersDesc')}</p>
+          <Link to="/shop" className="btn btn-primary">{t('profile.shopNow')}</Link>
         </div>
       )}
     </div>
@@ -191,6 +195,7 @@ function OrdersTab() {
 
 /* ── Wishlist ── */
 function WishlistTab() {
+  const { t } = useLang();
   const { items, remove } = useWishlist();
   const { add } = useCart();
   const [added, setAdded] = useState(null);
@@ -205,9 +210,9 @@ function WishlistTab() {
     return (
       <div className="text-center py-16">
         <div className="text-5xl mb-4">🤍</div>
-        <h3 className="text-xl mb-2">المفضلة فارغة</h3>
-        <p className="text-brand-ink-soft text-sm mb-6">احفظي القطع التي تعجبكِ بالضغط على 🤍</p>
-        <Link to="/shop" className="btn btn-primary">تصفّحي المتجر</Link>
+        <h3 className="text-xl mb-2">{t('profile.emptyWishlist')}</h3>
+        <p className="text-brand-ink-soft text-sm mb-6">{t('profile.emptyWishlistDesc')}</p>
+        <Link to="/shop" className="btn btn-primary">{t('profile.browseShop')}</Link>
       </div>
     );
   }
@@ -240,7 +245,7 @@ function WishlistTab() {
                   : 'bg-brand-pink-softer text-brand-pink hover:bg-brand-pink hover:text-white'
               }`}
             >
-              {added === product.id ? '✓ تمت الإضافة' : 'أضيفي للسلة'}
+              {added === product.id ? t('profile.addedToCart') : t('profile.addToCart')}
             </button>
           </div>
         </div>
@@ -251,6 +256,7 @@ function WishlistTab() {
 
 /* ── Settings ── */
 function SettingsTab() {
+  const { t } = useLang();
   const [form, setFormState] = useState({ ...MOCK_USER });
   const [saved, setSaved] = useState(false);
 
@@ -266,28 +272,28 @@ function SettingsTab() {
     <div className="bg-white rounded-brand shadow-brand-sm p-6">
       <h2 className="text-xl mb-6 flex items-center gap-2 text-brand-ink">
         <span className="text-brand-pink"><UserIcon /></span>
-        بياناتي الشخصية
+        {t('profile.personalData')}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="الاسم الكامل">
+          <Field label={t('profile.fullName')}>
             <input type="text" value={form.name} onChange={e => set('name', e.target.value)} className={inputCls} />
           </Field>
-          <Field label="رقم الهاتف">
+          <Field label={t('profile.phone')}>
             <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} dir="ltr" className={inputCls} />
           </Field>
-          <Field label="البريد الإلكتروني" className="sm:col-span-2">
+          <Field label={t('profile.email')} className="sm:col-span-2">
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)} dir="ltr" className={inputCls} />
           </Field>
         </div>
 
         <div className="border-t border-brand-line pt-5 mt-2">
-          <h3 className="text-base font-semibold mb-4">تغيير كلمة المرور</h3>
+          <h3 className="text-base font-semibold mb-4">{t('profile.changePassword')}</h3>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="كلمة المرور الحالية">
+            <Field label={t('profile.currentPass')}>
               <input type="password" placeholder="••••••••" dir="ltr" className={inputCls} />
             </Field>
-            <Field label="كلمة المرور الجديدة">
+            <Field label={t('profile.newPass')}>
               <input type="password" placeholder="••••••••" dir="ltr" className={inputCls} />
             </Field>
           </div>
@@ -300,12 +306,12 @@ function SettingsTab() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="w-4 h-4">
                   <path d="m5 12 5 5 9-11" />
                 </svg>
-                تم الحفظ
+                {t('profile.saved')}
               </span>
-            ) : 'حفظ التغييرات'}
+            ) : t('profile.saveChanges')}
           </button>
           <Link to="/auth" className="btn btn-outline text-[#D64545] border-[#D64545]/20 hover:bg-[#fde8e8] hover:border-[#D64545]">
-            تسجيل الخروج
+            {t('profile.logout')}
           </Link>
         </div>
       </form>

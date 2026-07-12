@@ -16,6 +16,17 @@ import Faq from './pages/faq/Faq.jsx';
 import Profile from './pages/profile/Profile.jsx';
 import { useReveal } from './hooks/useReveal.js';
 import ScrollToTop from './components/ScrollToTop.jsx';
+import { useLang } from './context/LanguageContext.jsx';
+
+function NotFound() {
+  const { t } = useLang();
+  return (
+    <div className="akwab-container py-24 text-center">
+      <h1 className="text-5xl mb-4">404</h1>
+      <p className="text-brand-ink-soft">{t('notFound.message')}</p>
+    </div>
+  );
+}
 
 export default function App() {
   useReveal();
@@ -38,15 +49,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/profile" element={<Profile />} />
-          <Route
-            path="*"
-            element={
-              <div className="akwab-container py-24 text-center">
-                <h1 className="text-5xl mb-4">٤٠٤</h1>
-                <p className="text-brand-ink-soft">الصفحة غير موجودة.</p>
-              </div>
-            }
-          />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />

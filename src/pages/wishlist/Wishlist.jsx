@@ -3,19 +3,22 @@ import { useWishlist } from '../../context/WishlistContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
 import { toArabicDigits, starsStr } from '../../utils/arabic.js';
 import { useState } from 'react';
+import { useLang } from '../../context/LanguageContext.jsx';
 
 export default function Wishlist() {
+  const { t, lang } = useLang();
   const { items, remove, clear, count } = useWishlist();
+  const fmt = (n) => lang === 'ar' ? toArabicDigits(n) : String(n);
 
   if (items.length === 0) {
     return (
       <div className="akwab-container py-24 text-center">
         <div className="text-7xl mb-6">🤍</div>
-        <h1 className="text-4xl mb-4">قائمة المفضلة فارغة</h1>
+        <h1 className="text-4xl mb-4">{t('wishlist.empty')}</h1>
         <p className="text-brand-ink-soft mb-8 max-w-sm mx-auto">
-          احفظ القطع اللي تعجبك بالضغط على 🤍 في أي منتج، وستظهر هنا.
+          {t('wishlist.emptyDesc')}
         </p>
-        <Link to="/shop" className="btn btn-primary">ابدأ التسوق</Link>
+        <Link to="/shop" className="btn btn-primary">{t('wishlist.startShopping')}</Link>
       </div>
     );
   }
@@ -27,16 +30,16 @@ export default function Wishlist() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl mb-1">المفضلة</h1>
+            <h1 className="text-4xl mb-1">{t('wishlist.title')}</h1>
             <p className="text-brand-ink-soft">
-              {toArabicDigits(count)} {count === 1 ? 'منتج' : 'منتجات'} محفوظة
+              {fmt(count)} {count === 1 ? 'منتج' : 'منتجات'} محفوظة
             </p>
           </div>
           <button
             onClick={clear}
             className="text-sm text-brand-ink-soft hover:text-[#D64545] transition-colors"
           >
-            مسح الكل
+            {t('wishlist.clearAll')}
           </button>
         </div>
 
@@ -53,6 +56,7 @@ export default function Wishlist() {
 }
 
 function WishlistCard({ product, onRemove }) {
+  const { t } = useLang();
   const { add } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -65,7 +69,6 @@ function WishlistCard({ product, onRemove }) {
 
   return (
     <article className="bg-white rounded-brand shadow-brand-sm hover:shadow-brand-md transition-all overflow-hidden group">
-      {/* Image */}
       <div className="relative">
         <Link to={`/product/${product.id}`} className={`block aspect-square p-bg-${product.bg || 1}`}>
           {product.badge && (
@@ -79,7 +82,6 @@ function WishlistCard({ product, onRemove }) {
             />
           )}
         </Link>
-        {/* Remove button */}
         <button
           type="button"
           onClick={onRemove}
@@ -90,7 +92,6 @@ function WishlistCard({ product, onRemove }) {
         </button>
       </div>
 
-      {/* Info */}
       <div className="p-5">
         <div className="flex items-center gap-2 text-sm mb-1">
           <span className="text-brand-gold tracking-wider">{starsStr(product.rating)}</span>
@@ -122,14 +123,14 @@ function WishlistCard({ product, onRemove }) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="w-4 h-4">
                   <path d="m5 12 5 5 9-11" />
                 </svg>
-                تمت الإضافة
+                {t('wishlist.added')}
               </>
             ) : (
               <>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                   <path d="M5 6h16l-2 11H7Z" /><path d="M9 6a3 3 0 0 1 6 0" />
                 </svg>
-                أضف للسلة
+                {t('wishlist.addToCart')}
               </>
             )}
           </button>

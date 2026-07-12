@@ -1,37 +1,19 @@
 import { Link } from 'react-router-dom';
 import { SectionHead } from '../../components/SectionHead.jsx';
+import { useLang } from '../../context/LanguageContext.jsx';
 
-const VALUES = [
-  {
-    icon: <HandIcon />,
-    title: ' حفر ليزر حسب الطلب',
-    desc: 'يمكنك اضافة جملة أو تصميم داخل أو خارج الكوب حسب الرغبة.',
-  },
-  {
-    icon: <HeartIcon />,
-    title: ' الطباعة والرسم ',
-    desc: 'لدينا مجموعة من الأكواب والفناجين السادة يمكنك طباعة أو رسم التصميم حسب .ذوقك',
-  },
-  {
-    icon: <LeafIcon />,
-    title: 'خامات آمنة',
-    desc: 'جميع موادنا خالية من المواد الضارة وآمنة للاستخدام اليومي.',
-  },
-  {
-    icon: <StarIcon />,
-    title: 'جودة لا تُساوم',
-    desc: 'كل كوب يمر بمراحل فحص دقيقة قبل أن يصل إليك .',
-  },
-];
-
-const STATS = [
-  { num: '+٥٠٠٠', label: 'عميلة سعيدة' },
-  { num: '+٢٠٠', label: 'تصميم فريد' },
-  { num: '٣', label: 'سنوات من الإبداع' },
-  { num: '٢٧', label: 'محافظة نصلها' },
+const VALUE_ICONS = [
+  <HandIcon />,
+  <HeartIcon />,
+  <LeafIcon />,
+  <StarIcon />,
 ];
 
 export default function About() {
+  const { t } = useLang();
+  const values = t('about.values');
+  const stats = t('about.stats');
+
   return (
     <>
       {/* Hero */}
@@ -44,13 +26,11 @@ export default function About() {
         <Petal className="absolute top-1/2 left-8 text-3xl opacity-20 rotate-45">✿</Petal>
 
         <div className="akwab-container max-w-3xl text-center relative z-10">
-         
           <h1 className="text-[clamp(36px,5vw,64px)] mb-6 leading-tight">
-          قصة أكواب
+            {t('about.heroTitle')}
           </h1>
           <p className="text-brand-ink-soft text-[18px] leading-relaxed max-w-2xl mx-auto">
-            بدأت أكواب كفكرة بسيطة: أن كل لحظة قهوة تستحق كوباً يليق بها.
-           — نحمل معنا شغف الصناعة اليدوية وعشق التفاصيل.
+            {t('about.heroDesc')}
           </p>
         </div>
       </section>
@@ -60,18 +40,18 @@ export default function About() {
         <div className="akwab-container max-w-3xl text-center">
           <div className="reveal">
             <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-              الحكاية
+              {t('about.storyKicker')}
             </p>
             <h2 className="text-[clamp(28px,3.5vw,44px)] mb-6">
-              من يد الفنانة إلى يديك
+              {t('about.storyTitle')}
             </h2>
             <p className="text-brand-ink-soft leading-relaxed mb-4 text-[17px]">
-              بدأت رحلة أكواب في عام 2023 انطلاقًا من شغف حقيقي بعالم الأكواب والتفاصيل التي تجعل كل قطعة تحمل طابعًا خاصًا وفريدًا. جاءت الفكرة بهدف إتاحة مساحة لكل شخص ليصمم كوبه بالطريقة التي تعبّر عنه بالكامل، سواء من خلال اختيار الألوان، الرسومات، أو إضافة عبارات محفورة داخل أو خارج الكوب.
+              {t('about.storyP1')}
             </p>
             <p className="text-brand-ink-soft leading-relaxed mb-8 text-[17px]">
-              في أكواب نؤمن أن الهدية لا تُقاس بقيمتها المادية فقط، بل بالمشاعر والذكريات التي تحملها. لذلك نعمل على تحويل كل كوب إلى قطعة شخصية مميزة، يمكن أن تكون هدية للنفس أو لمن نحب، لتبقى ذكرى جميلة تدوم مع الوقت وتعكس مشاعر صادقة لا تُنسى.
+              {t('about.storyP2')}
             </p>
-            <Link to="/shop" className="btn btn-primary">تسوّق معنا</Link>
+            <Link to="/shop" className="btn btn-primary">{t('about.shopWithUs')}</Link>
           </div>
         </div>
       </section>
@@ -80,15 +60,15 @@ export default function About() {
       <section className="py-20" style={{ background: 'linear-gradient(180deg,#fef9e7 0%,#fefcf0 100%)' }}>
         <div className="akwab-container">
           <SectionHead
-            kicker="قيمنا"
-            title="ما يجعلنا مختلفات"
-            desc="أربعة مبادئ تحكم كل قطعة نصنعها."
+            kicker={t('about.valuesKicker')}
+            title={t('about.valuesTitle')}
+            desc={t('about.valuesDesc')}
           />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {VALUES.map((v, i) => (
+            {values.map((v, i) => (
               <div key={i} className="reveal bg-white rounded-brand p-6 shadow-brand-sm text-center">
                 <div className="w-14 h-14 rounded-full bg-brand-pink-softer flex items-center justify-center mx-auto mb-4 text-brand-pink">
-                  {v.icon}
+                  {VALUE_ICONS[i]}
                 </div>
                 <h3 className="text-lg mb-2">{v.title}</h3>
                 <p className="text-sm text-brand-ink-soft leading-relaxed">{v.desc}</p>
@@ -105,7 +85,7 @@ export default function About() {
       >
         <div className="akwab-container">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {STATS.map((s, i) => (
+            {stats.map((s, i) => (
               <div key={i} className="reveal text-center text-white">
                 <div className="font-amiri text-[clamp(36px,4vw,52px)] font-bold mb-1">{s.num}</div>
                 <div className="text-white/80 text-sm">{s.label}</div>
@@ -119,13 +99,13 @@ export default function About() {
       <section className="py-20">
         <div className="akwab-container max-w-2xl text-center">
           <SectionHead
-            kicker="انضمي إلينا"
-            title="كوني جزءاً من حكايتنا"
-            desc="تسوّقي، أو شاركينا تجربتك، أو راسلينا لطلب تصميم خاص."
+            kicker={t('about.ctaKicker')}
+            title={t('about.ctaTitle')}
+            desc={t('about.ctaDesc')}
           />
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/shop" className="btn btn-primary justify-center">تصفّحي المتجر</Link>
-            <Link to="/contact" className="btn btn-outline justify-center">تواصلي معنا</Link>
+            <Link to="/shop" className="btn btn-primary justify-center">{t('about.browseShop')}</Link>
+            <Link to="/contact" className="btn btn-outline justify-center">{t('about.contactUs')}</Link>
           </div>
         </div>
       </section>

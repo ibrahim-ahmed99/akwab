@@ -1,58 +1,20 @@
 import { useState } from 'react';
 import { SectionHead } from '../../components/SectionHead.jsx';
+import { useLang } from '../../context/LanguageContext.jsx';
 
-const CONTACT_ITEMS = [
-  {
-    icon: <PhoneIcon />,
-    label: 'واتساب',
-    value: '01013958495',
-    sub: 'متاحة من ١٠ص حتى ١٠م',
-    href: 'https://wa.me/201013958495',
-    btnLabel: 'ابدئي محادثة',
-    btnClass: 'btn-whats',
-  },
-  {
-    icon: <MailIcon />,
-    label: 'البريد الإلكتروني',
-    value: 'hello@akwab.shop',
-    sub: 'نرد خلال ٢٤ ساعة',
-    href: 'mailto:hello@akwab.shop',
-    btnLabel: 'راسليني',
-    btnClass: 'btn-outline',
-  },
-  {
-    icon: <MapPinIcon />,
-    label: 'الموقع',
-    value: 'القاهرة، مصر',
-    sub: 'التوصيل لكل المحافظات',
-    href: null,
-    btnLabel: null,
-    btnClass: null,
-  },
-  {
-    icon: <ClockIcon />,
-    label: 'ساعات العمل',
-    value: 'السبت – الخميس',
-    sub: '١٠:٠٠ صباحاً — ١٠:٠٠ مساءً',
-    href: null,
-    btnLabel: null,
-    btnClass: null,
-  },
-];
-
-const SUBJECTS = [
-  'استفسار عن منتج',
-  'طلب تصميم مخصص',
-  'مشكلة في الطلب',
-  'شراء بالجملة',
-  'تعاون أو شراكة',
-  'أخرى',
+const ITEM_ICONS = [
+  <PhoneIcon />,
+  <MailIcon />,
+  <MapPinIcon />,
+  <ClockIcon />,
 ];
 
 export default function Contact() {
-  const [form, setFormState] = useState({
-    name: '', contact: '', subject: '', message: '',
-  });
+  const { t } = useLang();
+  const contactItems = t('contact.items');
+  const subjects = t('contact.subjects');
+
+  const [form, setFormState] = useState({ name: '', contact: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -64,10 +26,10 @@ export default function Contact() {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'الاسم مطلوب';
-    if (!form.contact.trim()) e.contact = 'رقم الهاتف أو البريد الإلكتروني مطلوب';
-    if (!form.subject) e.subject = 'اختاري الموضوع';
-    if (form.message.trim().length < 10) e.message = 'الرسالة قصيرة جداً';
+    if (!form.name.trim()) e.name = t('contact.errors.name');
+    if (!form.contact.trim()) e.contact = t('contact.errors.contact');
+    if (!form.subject) e.subject = t('contact.errors.subject');
+    if (form.message.trim().length < 10) e.message = t('contact.errors.message');
     return e;
   };
 
@@ -90,11 +52,11 @@ export default function Contact() {
         <span className="absolute bottom-8 left-16 text-3xl opacity-20 select-none">✿</span>
         <div className="akwab-container relative z-10">
           <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-            تواصلي معنا
+            {t('contact.kicker')}
           </p>
-          <h1 className="text-[clamp(32px,4.5vw,56px)] mb-4">كيف نقدر نساعدك؟</h1>
+          <h1 className="text-[clamp(32px,4.5vw,56px)] mb-4">{t('contact.title')}</h1>
           <p className="text-brand-ink-soft text-[17px] max-w-xl mx-auto">
-            سواء عندك سؤال عن منتج أو طلب مخصص أو أي استفسار — فريقنا هنا لك.
+            {t('contact.desc')}
           </p>
         </div>
       </section>
@@ -113,38 +75,38 @@ export default function Contact() {
                       <path d="m5 12 5 5 9-11" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl mb-3 font-amiri">تم إرسال رسالتك!</h3>
-                  <p className="text-brand-ink-soft text-sm mb-6">سنتواصل معك خلال ٢٤ ساعة على أقصى تقدير.</p>
+                  <h3 className="text-2xl mb-3 font-amiri">{t('contact.sent')}</h3>
+                  <p className="text-brand-ink-soft text-sm mb-6">{t('contact.sentDesc')}</p>
                   <button onClick={() => { setSent(false); setFormState({ name: '', contact: '', subject: '', message: '' }); }}
-                    className="btn btn-outline">إرسال رسالة أخرى</button>
+                    className="btn btn-outline">{t('contact.sendAnother')}</button>
                 </div>
               ) : (
                 <>
                   <h2 className="text-2xl mb-6 flex items-center gap-2.5">
                     <span className="text-brand-pink"><MessageIcon /></span>
-                    أرسلي رسالة
+                    {t('contact.formTitle')}
                   </h2>
                   <form onSubmit={handleSubmit} noValidate className="space-y-5">
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <Field label="الاسم الكامل" error={errors.name} required>
+                      <Field label={t('contact.fullName')} error={errors.name} required>
                         <input type="text" value={form.name} onChange={e => set('name', e.target.value)}
-                          placeholder="مثال: نور أحمد" className={inputCls(errors.name)} />
+                          placeholder={t('contact.namePlaceholder')} className={inputCls(errors.name)} />
                       </Field>
-                      <Field label="الهاتف أو البريد الإلكتروني" error={errors.contact} required>
+                      <Field label={t('contact.phoneOrEmail')} error={errors.contact} required>
                         <input type="text" value={form.contact} onChange={e => set('contact', e.target.value)}
-                          placeholder="01xxxxxxxx أو email@..." className={inputCls(errors.contact)} dir="ltr" />
+                          placeholder={t('contact.phonePlaceholder')} className={inputCls(errors.contact)} dir="ltr" />
                       </Field>
                     </div>
-                    <Field label="الموضوع" error={errors.subject} required>
+                    <Field label={t('contact.subject')} error={errors.subject} required>
                       <select value={form.subject} onChange={e => set('subject', e.target.value)}
                         className={inputCls(errors.subject)}>
-                        <option value="">اختاري الموضوع</option>
-                        {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                        <option value="">{t('contact.chooseSubject')}</option>
+                        {subjects.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </Field>
-                    <Field label="رسالتك" error={errors.message} required>
+                    <Field label={t('contact.messageLbl')} error={errors.message} required>
                       <textarea value={form.message} onChange={e => set('message', e.target.value)}
-                        rows={5} placeholder="اكتبي رسالتك هنا..."
+                        rows={5} placeholder={t('contact.writePlaceholder')}
                         className={`${inputCls(errors.message)} resize-none`} />
                     </Field>
                     <button type="submit" disabled={submitting}
@@ -154,9 +116,9 @@ export default function Contact() {
                           <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                           </svg>
-                          جاري الإرسال...
+                          {t('contact.sending')}
                         </span>
-                      ) : 'إرسال الرسالة'}
+                      ) : t('contact.sendMessage')}
                     </button>
                   </form>
                 </>
@@ -165,10 +127,10 @@ export default function Contact() {
 
             {/* Contact info */}
             <div className="space-y-4 lg:sticky lg:top-28">
-              {CONTACT_ITEMS.map((item, i) => (
+              {contactItems.map((item, i) => (
                 <div key={i} className="bg-white rounded-brand p-5 shadow-brand-sm flex gap-4 items-start">
                   <div className="w-11 h-11 rounded-full bg-brand-pink-softer text-brand-pink flex items-center justify-center shrink-0">
-                    {item.icon}
+                    {ITEM_ICONS[i]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-brand-ink-soft mb-0.5">{item.label}</div>
@@ -186,18 +148,31 @@ export default function Contact() {
 
               {/* Social */}
               <div className="bg-white rounded-brand p-5 shadow-brand-sm">
-                <div className="text-sm font-semibold mb-3">تابعينا على</div>
+                <div className="text-sm font-semibold mb-3">{t('contact.followUs')}</div>
                 <div className="flex gap-3">
-                  {[
-                    { label: 'Instagram', color: '#E0478A', icon: '📸' },
-                    { label: 'TikTok', color: '#3D2540', icon: '🎵' },
-                    { label: 'Pinterest', color: '#E0478A', icon: '📌' },
-                  ].map(s => (
-                    <button key={s.label} aria-label={s.label}
-                      className="w-10 h-10 rounded-full bg-brand-cream flex items-center justify-center text-lg hover:scale-110 transition-transform">
-                      {s.icon}
-                    </button>
-                  ))}
+                  <a href="https://www.instagram.com/akwab_official_/" target="_blank" rel="noopener noreferrer"
+                    aria-label="إنستغرام"
+                    className="w-10 h-10 rounded-xl bg-brand-cream text-brand-ink-soft flex items-center justify-center hover:bg-brand-pink hover:text-white transition-all hover:-translate-y-0.5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="w-[18px] h-[18px]">
+                      <rect x="3" y="3" width="18" height="18" rx="5" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="17.5" cy="6.5" r=".8" fill="currentColor" />
+                    </svg>
+                  </a>
+                  <a href="https://www.tiktok.com/@akwab_official" target="_blank" rel="noopener noreferrer"
+                    aria-label="تيك توك"
+                    className="w-10 h-10 rounded-xl bg-brand-cream text-brand-ink-soft flex items-center justify-center hover:bg-brand-pink hover:text-white transition-all hover:-translate-y-0.5">
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[18px] h-[18px]">
+                      <path d="M16 3v2.5a5.5 5.5 0 0 0 5 5.5v3a8 8 0 0 1-5-1.8V17a6 6 0 1 1-6-6h1v3h-1a3 3 0 1 0 3 3V3z" />
+                    </svg>
+                  </a>
+                  <a href="https://www.facebook.com/share/1JRzZ2ggrL/" target="_blank" rel="noopener noreferrer"
+                    aria-label="فيسبوك"
+                    className="w-10 h-10 rounded-xl bg-brand-cream text-brand-ink-soft flex items-center justify-center hover:bg-brand-pink hover:text-white transition-all hover:-translate-y-0.5">
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[18px] h-[18px]">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>

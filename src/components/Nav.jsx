@@ -4,21 +4,23 @@ import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { toArabicDigits } from '../utils/arabic.js';
-
-const NAV_LINKS = [
-  { to: '/',        label: 'الرئيسية',    end: true },
-  { to: '/shop',    label: 'المتجر'               },
-  { to: '/about',   label: 'من نحن'               },
-  { to: '/contact', label: 'تواصل معنا'           },
-];
+import { useLang } from '../context/LanguageContext.jsx';
 
 export default function Nav() {
   const { count }              = useCart();
   const { count: wishCount }   = useWishlist();
   const { user, logout }       = useAuth();
   const navigate               = useNavigate();
+  const { t, toggle }          = useLang();
   const [userMenuOpen,  setUserMenuOpen]  = useState(false);
   const [mobileOpen,    setMobileOpen]    = useState(false);
+
+  const NAV_LINKS = [
+    { to: '/',        label: t('nav.home'),    end: true },
+    { to: '/shop',    label: t('nav.shop')              },
+    { to: '/about',   label: t('nav.about')             },
+    { to: '/contact', label: t('nav.contact')           },
+  ];
 
   const closeAll = () => { setMobileOpen(false); setUserMenuOpen(false); };
 
@@ -60,7 +62,7 @@ export default function Nav() {
             <button
               className="md:hidden w-[42px] h-[42px] rounded-full flex items-center justify-center text-brand-ink hover:bg-brand-pink-softer hover:text-brand-pink transition-all"
               onClick={() => setMobileOpen((p) => !p)}
-              aria-label="القائمة"
+              aria-label={t('nav.menu')}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-5 h-5">
                 {mobileOpen
@@ -89,9 +91,18 @@ export default function Nav() {
           {/* ── Col 3: Icons ── */}
           <div className="flex items-center gap-1 md:gap-1.5 justify-self-end">
 
+            {/* Lang toggle */}
+            <button
+              onClick={toggle}
+              className="hidden md:flex w-[42px] h-[42px] rounded-full items-center justify-center text-xs font-bold text-brand-pink border border-brand-pink hover:bg-brand-pink hover:text-white transition-all"
+              aria-label="تغيير اللغة"
+            >
+              {t('nav.lang')}
+            </button>
+
             {/* Search — hidden on mobile (in burger menu) */}
             <span className="hidden md:block">
-              <IconBtn label="بحث" onClick={() => navigate('/search')}>
+              <IconBtn label={t('nav.search')} onClick={() => navigate('/search')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round">
                   <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
                 </svg>
@@ -100,7 +111,7 @@ export default function Nav() {
 
             {/* Wishlist */}
             <Link
-              to="/wishlist" aria-label="المفضلة"
+              to="/wishlist" aria-label={t('nav.favorites') || 'wishlist'}
               className="relative w-[42px] h-[42px] rounded-full flex items-center justify-center text-brand-ink transition-all hover:bg-brand-pink-softer hover:text-brand-pink hover:-translate-y-0.5"
             >
               <span className="w-5 h-5 block [&>svg]:w-full [&>svg]:h-full [&>svg]:stroke-[1.8]">
@@ -118,7 +129,7 @@ export default function Nav() {
                   <button
                     onClick={() => setUserMenuOpen((p) => !p)}
                     className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full hover:bg-brand-pink-softer transition-all"
-                    aria-label="قائمة المستخدم"
+                    aria-label={t('nav.profile')}
                   >
                     <div className="w-8 h-8 rounded-full bg-brand-pink text-white flex items-center justify-center text-sm font-bold font-cairo shrink-0">
                       {user.name?.charAt(0) || '؟'}
@@ -139,12 +150,12 @@ export default function Nav() {
                           <div className="text-sm font-semibold text-brand-ink truncate">{user.name}</div>
                           {user.phone && <div className="text-xs text-brand-ink-soft mt-0.5" dir="ltr">{user.phone}</div>}
                         </div>
-                        <DropLink to="/profile" onClick={() => setUserMenuOpen(false)} icon={<UserIcon />}>الملف الشخصي</DropLink>
-                        <DropLink to="/profile?tab=orders" onClick={() => setUserMenuOpen(false)} icon={<OrderIcon />}>طلباتي</DropLink>
+                        <DropLink to="/profile" onClick={() => setUserMenuOpen(false)} icon={<UserIcon />}>{t('nav.profile')}</DropLink>
+                        <DropLink to="/profile?tab=orders" onClick={() => setUserMenuOpen(false)} icon={<OrderIcon />}>{t('nav.myOrders')}</DropLink>
                         <div className="border-t border-brand-line mt-1 pt-1">
                           <button onClick={handleLogout}
                             className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#D64545] hover:bg-[#fde8e8] transition-colors">
-                            <LogoutIcon /> تسجيل الخروج
+                            <LogoutIcon /> {t('nav.logout')}
                           </button>
                         </div>
                       </div>
@@ -156,13 +167,13 @@ export default function Nav() {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" />
                   </svg>
-                  تسجيل الدخول
+                  {t('nav.login')}
                 </Link>
               )}
             </span>
 
             {/* Cart */}
-            <Link to="/cart" aria-label="السلة"
+            <Link to="/cart" aria-label={t('nav.cart') || 'cart'}
               className="relative w-[42px] h-[42px] rounded-full flex items-center justify-center text-brand-ink transition-all hover:bg-brand-pink-softer hover:text-brand-pink hover:-translate-y-0.5"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" className="w-5 h-5" strokeWidth="1.8">
@@ -203,7 +214,15 @@ export default function Nav() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" className="w-4 h-4">
                   <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
                 </svg>
-                بحث
+                {t('nav.search')}
+              </button>
+
+              {/* Lang toggle mobile */}
+              <button
+                onClick={() => { toggle(); closeAll(); }}
+                className="px-4 py-3 rounded-[14px] font-medium text-[15px] text-brand-pink hover:bg-brand-pink-softer transition-colors text-start flex items-center gap-2.5"
+              >
+                🌐 {t('nav.lang') === 'EN' ? 'English' : 'العربية'}
               </button>
 
               {/* Auth */}
@@ -221,11 +240,11 @@ export default function Nav() {
                     </div>
                     <Link to="/profile" onClick={closeAll}
                       className="px-4 py-3 rounded-[14px] font-medium text-[15px] text-brand-ink hover:bg-brand-pink-softer hover:text-brand-pink transition-colors flex items-center gap-2.5">
-                      <UserIcon /> الملف الشخصي
+                      <UserIcon /> {t('nav.profile')}
                     </Link>
                     <button onClick={handleLogout}
                       className="w-full px-4 py-3 rounded-[14px] font-medium text-[15px] text-[#D64545] hover:bg-[#fde8e8] transition-colors text-start flex items-center gap-2.5">
-                      <LogoutIcon /> تسجيل الخروج
+                      <LogoutIcon /> {t('nav.logout')}
                     </button>
                   </>
                 ) : (
@@ -234,7 +253,7 @@ export default function Nav() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                       <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" />
                     </svg>
-                    تسجيل الدخول
+                    {t('nav.login')}
                   </Link>
                 )}
               </div>

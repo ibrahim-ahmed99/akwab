@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { starsStr } from '../utils/arabic.js';
+import { useLang } from '../context/LanguageContext.jsx';
 
 export default function ProductCard({ product }) {
+  const { t } = useLang();
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const [added, setAdded] = useState(false);
@@ -75,7 +77,7 @@ export default function ProductCard({ product }) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="w-4 h-4">
                 <path d="m5 12 5 5 9-11" />
               </svg>
-              تمت الإضافة
+              {t('productCard.added')}
             </>
           ) : (
             <>
@@ -83,7 +85,7 @@ export default function ProductCard({ product }) {
                 <path d="M5 6h16l-2 11H7Z" />
                 <path d="M9 6a3 3 0 0 1 6 0" />
               </svg>
-              أضف للسلة
+              {t('productCard.addToCart')}
             </>
           )}
         </button>

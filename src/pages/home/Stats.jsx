@@ -1,49 +1,30 @@
-const STATS = [
-  {
-    num: '+٥٠٠٠ ',
-    lbl: 'عميلة سعيدة',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 21a8 8 0 0 1 16 0" />
-      </svg>
-    ),
-  },
-  {
-    num: '+٢٠٠',
-    lbl: 'تصميم حصري',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-        <path d="M6 2h12l2 5H4z" />
-        <path d="M4 7v13h16V7" />
-        <path d="M9 12h6" />
-      </svg>
-    ),
-  },
-  {
-    num: '٤٫٩ / ٥',
-    lbl: 'تقييم العميلات',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-        <path d="m12 2 3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z" />
-      </svg>
-    ),
-  },
-  {
-    num: 'من 3 الى 5 أيام',
-    lbl: 'توصيل لكل محافظات مصر',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-        <path d="M3 7h11v10H3z" />
-        <path d="M14 10h4l3 3v4h-7z" />
-        <circle cx="7" cy="18" r="2" />
-        <circle cx="17" cy="18" r="2" />
-      </svg>
-    ),
-  },
+import { useLang } from '../../context/LanguageContext.jsx';
+
+const ICONS = [
+  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </svg>,
+  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+    <path d="M6 2h12l2 5H4z" />
+    <path d="M4 7v13h16V7" />
+    <path d="M9 12h6" />
+  </svg>,
+  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+    <path d="m12 2 3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z" />
+  </svg>,
+  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+    <path d="M3 7h11v10H3z" />
+    <path d="M14 10h4l3 3v4h-7z" />
+    <circle cx="7" cy="18" r="2" />
+    <circle cx="17" cy="18" r="2" />
+  </svg>,
 ];
 
 export default function Stats() {
+  const { t } = useLang();
+  const stats = t('stats');
+
   return (
     <section
       className="py-[50px] relative overflow-hidden"
@@ -58,13 +39,13 @@ export default function Stats() {
       />
       <div className="akwab-container relative">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="reveal text-white">
               <div
                 className="w-[52px] h-[52px] rounded-full mx-auto mb-3.5 flex items-center justify-center"
                 style={{ background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(10px)' }}
               >
-                {s.icon}
+                {ICONS[i]}
               </div>
               <div className="font-amiri text-[clamp(30px,4vw,44px)] font-bold leading-none">{s.num}</div>
               <div className="text-sm opacity-[.92] mt-1.5">{s.lbl}</div>

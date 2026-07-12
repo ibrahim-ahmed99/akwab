@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useLang } from '../context/LanguageContext.jsx';
 
 /* ── Social icons ── */
 const InstagramIcon = () => (
@@ -35,24 +36,23 @@ const LocationIcon = () => (
 );
 
 const SOCIALS = [
-  { label: 'إنستغرام', Icon: InstagramIcon, href: 'https://www.instagram.com/akwab_official_/' },
-  { label: 'تيك توك',  Icon: TikTokIcon,    href: 'https://www.tiktok.com/@akwab_official' },
-  { label: 'فيسبوك',   Icon: FacebookIcon,  href: 'https://www.facebook.com/share/1JRzZ2ggrL/' },
-];
-
-const SHOP_LINKS = [
-  { label: 'كل المنتجات',   to: '/shop' },
-];
-
-const HELP_LINKS = [
-  { label: 'الأسئلة الشائعة',    to: '/faq' },
-  { label: 'الشحن والتوصيل',     to: '/faq' },
-  { label: 'سياسة الإرجاع',      to: '/faq' },
-  { label: 'تواصل معنا',         to: '/contact' },
-  { label: 'تتبّع طلبك',         to: '/profile' },
+  { labelKey: 'إنستغرام', Icon: InstagramIcon, href: 'https://www.instagram.com/akwab_official_/' },
+  { labelKey: 'تيك توك',  Icon: TikTokIcon,    href: 'https://www.tiktok.com/@akwab_official' },
+  { labelKey: 'فيسبوك',   Icon: FacebookIcon,  href: 'https://www.facebook.com/share/1JRzZ2ggrL/' },
 ];
 
 export default function Footer() {
+  const { t } = useLang();
+
+  const shopLinks = [{ label: t('footer.allProducts'), to: '/shop' }];
+  const helpLinks = [
+    { label: t('footer.faq'),          to: '/faq' },
+    { label: t('footer.shipping'),     to: '/faq' },
+    { label: t('footer.returnPolicy'), to: '/faq' },
+    { label: t('footer.contactUs'),    to: '/contact' },
+    { label: t('footer.trackOrder'),   to: '/profile' },
+  ];
+
   return (
     <footer
       className="mt-20 relative overflow-hidden"
@@ -75,16 +75,16 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-sm leading-[1.8] max-w-[320px]" style={{ color: '#B5A3BA' }}>
-              متجر عربي مستقل للأكواب الفنية وأطقم الشاي. نصنع تصاميمنا بحب، ونشحنها بعناية إلى كل بيت.
+              {t('footer.desc')}
             </p>
             <div className="flex gap-2.5 mt-5">
-              {SOCIALS.map(({ label, Icon, href }) => (
+              {SOCIALS.map(({ labelKey, Icon, href }) => (
                 <a
-                  key={label}
+                  key={labelKey}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={label}
+                  aria-label={labelKey}
                   className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-[250ms] hover:bg-brand-pink hover:text-white hover:-translate-y-0.5"
                   style={{ background: 'rgba(255,255,255,.06)', color: '#D8C8DC' }}
                 >
@@ -95,14 +95,14 @@ export default function Footer() {
           </div>
 
           {/* Shop column */}
-          <FooterCol title="تسوّق" links={SHOP_LINKS} />
+          <FooterCol title={t('footer.shop')} links={shopLinks} />
 
           {/* Help column */}
-          <FooterCol title="المساعدة" links={HELP_LINKS} />
+          <FooterCol title={t('footer.help')} links={helpLinks} />
 
           {/* Contact column */}
           <div>
-            <FooterHeading>تواصل معنا</FooterHeading>
+            <FooterHeading>{t('footer.contactHeading')}</FooterHeading>
             <ul className="flex flex-col gap-3 text-sm" style={{ color: '#B5A3BA' }}>
               <li>
                 <a href="mailto:hello@akwab.shop" className="flex items-start gap-2.5 hover:text-brand-pink transition-colors">
@@ -116,16 +116,16 @@ export default function Footer() {
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
-                <LocationIcon /> القاهرة، جمهورية مصر العربية
+                <LocationIcon /> {t('footer.city')}
               </li>
             </ul>
 
             <div className="mt-6">
-              <FooterHeading>روابط سريعة</FooterHeading>
+              <FooterHeading>{t('footer.quickLinks')}</FooterHeading>
               <ul className="flex flex-col gap-2.5 text-sm" style={{ color: '#B5A3BA' }}>
-                <li><Link to="/about" className="hover:text-brand-pink transition-colors">من نحن</Link></li>
-                <li><Link to="/auth" className="hover:text-brand-pink transition-colors">تسجيل الدخول</Link></li>
-                <li><Link to="/wishlist" className="hover:text-brand-pink transition-colors">المفضلة</Link></li>
+                <li><Link to="/about" className="hover:text-brand-pink transition-colors">{t('footer.aboutUs')}</Link></li>
+                <li><Link to="/auth" className="hover:text-brand-pink transition-colors">{t('footer.loginLink')}</Link></li>
+                <li><Link to="/wishlist" className="hover:text-brand-pink transition-colors">{t('footer.wishlistLink')}</Link></li>
               </ul>
             </div>
           </div>
@@ -134,9 +134,9 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-wrap justify-between items-center gap-4 pt-6 border-t text-xs"
           style={{ borderColor: 'rgba(255,255,255,.08)', color: '#8E7D93' }}>
-          <span>© ٢٠٢٦ أكواب. جميع الحقوق محفوظة — صُنع بحبٍّ.</span>
+          <span>{t('footer.copyright')}</span>
           <div className="flex gap-2 flex-wrap items-center">
-            {['فيزا', 'فودافون كاش', 'انستاباي', 'الدفع عند الاستلام'].map((p) => (
+            {t('footer.payments').map((p) => (
               <span key={p} className="px-3 py-1 rounded-lg text-[11px] font-semibold"
                 style={{ background: 'rgba(255,255,255,.06)', color: '#B5A3BA' }}>
                 {p}

@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLang } from '../../context/LanguageContext.jsx';
 
 export default function Auth() {
+  const { t } = useLang();
   const [tab, setTab] = useState('login');
+
+  const TABS = [
+    { key: 'login', label: t('auth.loginTab') },
+    { key: 'register', label: t('auth.registerTab') },
+  ];
 
   return (
     <section className="py-16 min-h-[calc(100vh-200px)] flex items-center">
@@ -19,7 +26,7 @@ export default function Auth() {
             </div>
           </Link>
           <p className="text-brand-ink-soft mt-3 text-sm">
-            {tab === 'login' ? 'أهلاً بعودتكِ! سجّلي دخولك للمتابعة.' : 'انضمي إلى عائلة أكواب!'}
+            {tab === 'login' ? t('auth.welcomeBack') : t('auth.joinFamily')}
           </p>
         </div>
 
@@ -30,20 +37,17 @@ export default function Auth() {
           <div className="p-8">
             {/* Tab switcher */}
             <div className="flex bg-brand-cream rounded-full p-1 mb-8">
-              {[
-                { key: 'login', label: 'تسجيل الدخول' },
-                { key: 'register', label: 'حساب جديد' },
-              ].map(t => (
+              {TABS.map(tabItem => (
                 <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
+                  key={tabItem.key}
+                  onClick={() => setTab(tabItem.key)}
                   className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                    tab === t.key
+                    tab === tabItem.key
                       ? 'bg-white text-brand-pink shadow-brand-sm'
                       : 'text-brand-ink-soft hover:text-brand-ink'
                   }`}
                 >
-                  {t.label}
+                  {tabItem.label}
                 </button>
               ))}
             </div>
@@ -62,6 +66,7 @@ export default function Auth() {
 
 /* ── Login ── */
 function LoginForm() {
+  const { t } = useLang();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [form, setFormState] = useState({ credential: '', password: '', remember: false });
@@ -76,8 +81,8 @@ function LoginForm() {
 
   const validate = () => {
     const e = {};
-    if (!form.credential.trim()) e.credential = 'أدخلي البريد الإلكتروني أو رقم الهاتف';
-    if (form.password.length < 6) e.password = 'كلمة المرور يجب أن تكون ٦ أحرف على الأقل';
+    if (!form.credential.trim()) e.credential = t('auth.errorCredential');
+    if (form.password.length < 6) e.password = t('auth.errorPassShort');
     return e;
   };
 
@@ -87,7 +92,7 @@ function LoginForm() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setSubmitting(true);
     setTimeout(() => {
-      login({ name: form.credential.includes('@') ? 'مستخدمة' : form.credential, phone: form.credential });
+      login({ name: form.credential.includes('@') ? 'مستخدم' : form.credential, phone: form.credential });
       setSubmitting(false);
       navigate('/');
     }, 1000);
@@ -95,16 +100,16 @@ function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      <Field label="البريد الإلكتروني أو الهاتف" error={errors.credential} required>
+      <Field label={t('auth.credentialLabel')} error={errors.credential} required>
         <input
           type="text" value={form.credential} dir="ltr"
           onChange={e => set('credential', e.target.value)}
-          placeholder="example@email.com أو 01xxxxxxxxx"
+          placeholder={t('auth.credentialPlaceholder')}
           className={inputCls(errors.credential)}
         />
       </Field>
 
-      <Field label="كلمة المرور" error={errors.password} required>
+      <Field label={t('auth.passwordLabel')} error={errors.password} required>
         <div className="relative">
           <input
             type={showPass ? 'text' : 'password'} value={form.password} dir="ltr"
@@ -116,7 +121,7 @@ function LoginForm() {
             type="button"
             onClick={() => setShowPass(p => !p)}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-ink-soft hover:text-brand-pink transition-colors"
-            aria-label={showPass ? 'إخفاء' : 'إظهار'}
+            aria-label={showPass ? t('auth.hide') : t('auth.show')}
           >
             {showPass ? <EyeOffIcon /> : <EyeIcon />}
           </button>
@@ -130,10 +135,10 @@ function LoginForm() {
             onChange={e => set('remember', e.target.checked)}
             className="w-4 h-4 rounded accent-[#E0478A]"
           />
-          <span className="text-brand-ink-soft">تذكّريني</span>
+          <span className="text-brand-ink-soft">{t('auth.rememberMe')}</span>
         </label>
         <button type="button" className="text-brand-pink hover:underline font-medium">
-          نسيتِ كلمة المرور؟
+          {t('auth.forgotPass')}
         </button>
       </div>
 
@@ -141,11 +146,10 @@ function LoginForm() {
         type="submit" disabled={submitting}
         className="btn btn-primary w-full justify-center py-3.5 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        {submitting ? <Spinner label="جاري تسجيل الدخول..." /> : 'تسجيل الدخول'}
+        {submitting ? <Spinner label={t('auth.loggingIn')} /> : t('auth.loginBtn')}
       </button>
 
       <Divider />
-
       <SocialButtons />
     </form>
   );
@@ -153,6 +157,7 @@ function LoginForm() {
 
 /* ── Register ── */
 function RegisterForm({ onSwitch }) {
+  const { t } = useLang();
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setFormState] = useState({
@@ -170,12 +175,12 @@ function RegisterForm({ onSwitch }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'الاسم مطلوب';
-    if (!/^01[0125][0-9]{8}$/.test(form.phone.trim())) e.phone = 'رقم هاتف مصري غير صحيح';
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'بريد إلكتروني غير صحيح';
-    if (form.password.length < 8) e.password = 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل';
-    if (form.password !== form.confirm) e.confirm = 'كلمتا المرور غير متطابقتين';
-    if (!form.terms) e.terms = 'يجب الموافقة على الشروط للمتابعة';
+    if (!form.name.trim()) e.name = t('auth.errorName');
+    if (!/^01[0125][0-9]{8}$/.test(form.phone.trim())) e.phone = t('auth.errorPhone');
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = t('auth.errorEmail');
+    if (form.password.length < 8) e.password = t('auth.errorPass8');
+    if (form.password !== form.confirm) e.confirm = t('auth.errorPassMatch');
+    if (!form.terms) e.terms = t('auth.errorTerms');
     return e;
   };
 
@@ -199,10 +204,10 @@ function RegisterForm({ onSwitch }) {
             <path d="m5 12 5 5 9-11" />
           </svg>
         </div>
-        <h3 className="text-xl mb-2 font-amiri">تم إنشاء حسابكِ!</h3>
-        <p className="text-brand-ink-soft text-sm mb-6">يمكنكِ الآن تسجيل الدخول.</p>
+        <h3 className="text-xl mb-2 font-amiri">{t('auth.accountCreated')}</h3>
+        <p className="text-brand-ink-soft text-sm mb-6">{t('auth.canLoginNow')}</p>
         <button onClick={onSwitch} className="btn btn-primary justify-center">
-          تسجيل الدخول الآن
+          {t('auth.loginNow')}
         </button>
       </div>
     );
@@ -210,17 +215,17 @@ function RegisterForm({ onSwitch }) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      <Field label="الاسم الكامل" error={errors.name} required>
+      <Field label={t('auth.fullName')} error={errors.name} required>
         <input
           type="text" value={form.name}
           onChange={e => set('name', e.target.value)}
-          placeholder="مثال: نور أحمد"
+          placeholder={t('auth.namePlaceholder')}
           className={inputCls(errors.name)}
         />
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="رقم الهاتف" error={errors.phone} required>
+        <Field label={t('auth.phone')} error={errors.phone} required>
           <input
             type="tel" value={form.phone} dir="ltr"
             onChange={e => set('phone', e.target.value)}
@@ -228,42 +233,41 @@ function RegisterForm({ onSwitch }) {
             className={inputCls(errors.phone)}
           />
         </Field>
-        <Field label="البريد الإلكتروني" error={errors.email}>
+        <Field label={t('auth.emailOptional')} error={errors.email}>
           <input
             type="email" value={form.email} dir="ltr"
             onChange={e => set('email', e.target.value)}
-            placeholder="اختياري"
+            placeholder={t('auth.emailOptionalPlaceholder')}
             className={inputCls(errors.email)}
           />
         </Field>
       </div>
 
-      <Field label="كلمة المرور" error={errors.password} required>
+      <Field label={t('auth.passwordLabel')} error={errors.password} required>
         <div className="relative">
           <input
             type={showPass ? 'text' : 'password'} value={form.password} dir="ltr"
             onChange={e => set('password', e.target.value)}
-            placeholder="٨ أحرف على الأقل"
+            placeholder={t('auth.passMin')}
             className={`${inputCls(errors.password)} pl-10`}
           />
           <button
             type="button"
             onClick={() => setShowPass(p => !p)}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-ink-soft hover:text-brand-pink transition-colors"
-            aria-label={showPass ? 'إخفاء' : 'إظهار'}
+            aria-label={showPass ? t('auth.hide') : t('auth.show')}
           >
             {showPass ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
-        {/* Strength bar */}
         {form.password && <PasswordStrength password={form.password} />}
       </Field>
 
-      <Field label="تأكيد كلمة المرور" error={errors.confirm} required>
+      <Field label={t('auth.confirmPass')} error={errors.confirm} required>
         <input
           type={showPass ? 'text' : 'password'} value={form.confirm} dir="ltr"
           onChange={e => set('confirm', e.target.value)}
-          placeholder="أعيدي كتابة كلمة المرور"
+          placeholder={t('auth.confirmPassPlaceholder')}
           className={inputCls(errors.confirm)}
         />
       </Field>
@@ -276,10 +280,10 @@ function RegisterForm({ onSwitch }) {
             className="w-4 h-4 mt-0.5 rounded accent-[#E0478A]"
           />
           <span className="text-sm text-brand-ink-soft leading-relaxed">
-            أوافق على{' '}
-            <button type="button" className="text-brand-pink hover:underline font-medium">شروط الاستخدام</button>
-            {' '}و{' '}
-            <button type="button" className="text-brand-pink hover:underline font-medium">سياسة الخصوصية</button>
+            {t('auth.agreeTerms')}{' '}
+            <button type="button" className="text-brand-pink hover:underline font-medium">{t('auth.termsLink')}</button>
+            {' '}{t('auth.and')}{' '}
+            <button type="button" className="text-brand-pink hover:underline font-medium">{t('auth.privacyLink')}</button>
           </span>
         </label>
         {errors.terms && <p className="text-xs text-[#D64545] mt-1">{errors.terms}</p>}
@@ -289,7 +293,7 @@ function RegisterForm({ onSwitch }) {
         type="submit" disabled={submitting}
         className="btn btn-primary w-full justify-center py-3.5 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        {submitting ? <Spinner label="جاري إنشاء الحساب..." /> : 'إنشاء الحساب'}
+        {submitting ? <Spinner label={t('auth.creating')} /> : t('auth.createAccount')}
       </button>
     </form>
   );
@@ -330,10 +334,11 @@ function Spinner({ label }) {
 }
 
 function Divider() {
+  const { t } = useLang();
   return (
     <div className="flex items-center gap-3 text-xs text-brand-ink-soft my-2">
       <span className="flex-1 h-px bg-brand-line" />
-      أو تسجيل الدخول بـ
+      {t('auth.orLoginWith')}
       <span className="flex-1 h-px bg-brand-line" />
     </div>
   );
@@ -361,6 +366,7 @@ function SocialBtn({ icon, label }) {
 }
 
 function PasswordStrength({ password }) {
+  const { t } = useLang();
   const score = [
     password.length >= 8,
     /[A-Z]/.test(password),
@@ -369,10 +375,10 @@ function PasswordStrength({ password }) {
   ].filter(Boolean).length;
 
   const levels = [
-    { label: 'ضعيفة', color: '#D64545' },
-    { label: 'مقبولة', color: '#C8A84B' },
-    { label: 'جيدة', color: '#89B8D8' },
-    { label: 'قوية', color: '#25D366' },
+    { label: t('auth.passStrengthWeak'),   color: '#D64545' },
+    { label: t('auth.passStrengthFair'),   color: '#C8A84B' },
+    { label: t('auth.passStrengthGood'),   color: '#89B8D8' },
+    { label: t('auth.passStrengthStrong'), color: '#25D366' },
   ];
   const lvl = levels[score - 1] || levels[0];
 
