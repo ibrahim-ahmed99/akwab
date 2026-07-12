@@ -1,58 +1,64 @@
-import { Route, Routes } from 'react-router-dom';
-import Nav from './components/Nav.jsx';
-import Footer from './components/Footer.jsx';
-import Home from './pages/home/Home.jsx';
-import Shop from './pages/shop/Shop.jsx';
-import Product from './pages/product/Product.jsx';
-import Cart from './pages/cart/Cart.jsx';
-import Checkout from './pages/checkout/Checkout.jsx';
-import OrderConfirmation from './pages/order-confirmation/OrderConfirmation.jsx';
-import Auth from './pages/auth/Auth.jsx';
-import Search from './pages/search/Search.jsx';
-import Wishlist from './pages/wishlist/Wishlist.jsx';
-import About from './pages/about/About.jsx';
-import Contact from './pages/contact/Contact.jsx';
-import Faq from './pages/faq/Faq.jsx';
-import Profile from './pages/profile/Profile.jsx';
-import { useReveal } from './hooks/useReveal.js';
-import ScrollToTop from './components/ScrollToTop.jsx';
-import { useLang } from './context/LanguageContext.jsx';
+import { useState } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BadgesProvider } from './context/BadgesContext'
+import Sidebar from './components/Sidebar'
+import Header from './components/Header'
+import Dashboard from './pages/Dashboard'
+import Categories from './pages/Categories'
+import Products from './pages/Products'
+import Orders from './pages/Orders'
+import Customers from './pages/Customers'
+import Contact from './pages/Contact'
+import About from './pages/About'
+import HomePage from './pages/HomePage'
+import FormPage from './pages/FormPage'
 
-function NotFound() {
-  const { t } = useLang();
+const pageTitles = {
+  '/':           'لوحة التحكم',
+  '/home-page':  'الرئيسية',
+  '/categories': 'الأقسام',
+  '/products':   'المنتجات',
+  '/orders':     'الأوردرات',
+  '/customers':  'العملاء',
+  '/form':       'النموذج',
+  '/contact':    'التواصل',
+  '/about':      'من نحن',
+}
+
+function AppLayout() {
+  const [collapsed, setCollapsed] = useState(false)
+  const location = useLocation()
+  const title = pageTitles[location.pathname] || 'الرئيسية'
+
   return (
-    <div className="akwab-container py-24 text-center">
-      <h1 className="text-5xl mb-4">404</h1>
-      <p className="text-brand-ink-soft">{t('notFound.message')}</p>
+    <div className="layout">
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+      <div className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}>
+        <Header title={title} />
+        <div className="page-body">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/home-page" element={<HomePage />} />
+            <Route path="/form" element={<FormPage />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
 
 export default function App() {
-  useReveal();
   return (
-    <>
-      <ScrollToTop />
-      <Nav />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/product/:id" element={<Product />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/faq" element={<Faq />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <Footer />
-    </>
-  );
+    <BadgesProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </BadgesProvider>
+  )
 }
