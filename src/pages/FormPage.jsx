@@ -1,79 +1,109 @@
-import { useState, useRef } from 'react'
-import { Upload, X, ImagePlus, Save, CheckCircle2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Save, CheckCircle2, Loader2, Eye, Trash2, X } from 'lucide-react'
+import { useApi } from '../hooks/useApi'
+import { useBadges } from '../context/BadgesContext'
+import StateBlock, { Loading, ErrorState } from '../components/StateBlock'
+import Pagination from '../components/Pagination'
+import ImageUploader from '../components/ImageUploader'
+import FormError from '../components/FormError'
+import { getFormContent, updateFormContent, listGovernorates } from '../services/settings'
+import * as submissionsApi from '../services/formSubmissions'
+import { REQUEST_BADGE, badgeClass, REQUEST_STATUSES } from '../services/statusMaps'
+import { num } from '../services/format'
 
-/* ─── Egyptian Governorates ─── */
-const GOVERNORATES = [
-  'اختر المحافظة',
-  'القاهرة','الجيزة','الإسكندرية','الدقهلية','الشرقية',
-  'الغربية','المنوفية','القليوبية','الفيوم','بني سويف',
-  'المنيا','أسيوط','سوهاج','قنا','الأقصر','أسوان',
-  'البحيرة','كفر الشيخ','دمياط','بورسعيد','الإسماعيلية',
-  'السويس','شمال سيناء','جنوب سيناء','مطروح','الوادي الجديد','البحر الأحمر',
-]
-
-/* ─── read file as dataURL ─── */
-const readFile = (file) => new Promise(res => {
-  const r = new FileReader()
-  r.onload = e => res(e.target.result)
-  r.readAsDataURL(file)
-})
-
-/* ─── initial state ─── */
-const INIT_CARD1 = {
-  title: '', subtitle: '', paragraph: '',
-  images: [], link1: '', link2: '',
-}
-const INIT_CARD2 = {
-  title: '', paragraph: '',
-  name: '', phone: '', governorate: 'اختر المحافظة',
-  quantity: '', notes: '',
-}
-
-/* ══════════════════════════════════════════════════════════ */
 export default function FormPage() {
-  const [card1, setCard1] = useState(INIT_CARD1)
-  const [card2, setCard2] = useState(INIT_CARD2)
-  const [saved, setSaved] = useState(false)
-
-  const imgRef = useRef()
-
-  const set1 = (k, v) => setCard1(p => ({ ...p, [k]: v }))
-  const set2 = (k, v) => setCard2(p => ({ ...p, [k]: v }))
-
-  /* image upload */
-  const onImages = async (e) => {
-    const files = Array.from(e.target.files)
-    const urls  = await Promise.all(files.map(readFile))
-    set1('images', [...card1.images, ...urls].slice(0, 6))
-  }
-  const removeImg = (i) => set1('images', card1.images.filter((_, idx) => idx !== i))
-
-  /* save both cards at once */
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
-  }
-
-  /* field counts */
-  const filled1 = [card1.title, card1.subtitle, card1.paragraph, card1.images.length ? '✓' : '', card1.link1, card1.link2].filter(v => String(v).trim()).length
-  const total1  = 6
-  const filled2 = [card2.title, card2.paragraph, card2.name, card2.phone, card2.governorate !== 'اختر المحافظة' ? '✓' : '', card2.quantity, card2.notes].filter(v => String(v).trim()).length
-  const total2  = 7
-
   return (
     <div>
       <div className="page-header">
         <div className="page-header-text">
           <h1>النموذج</h1>
-          <p>إدارة محتوى صفحة النموذج وإعداداته</p>
+          <p>إدارة محتوى صفحة النموذج وطلباتها</p>
         </div>
       </div>
+
+      <FormContent />
+      <Submissions />
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════
+   Page content — card 1 (content block) + card 2 (form config)
+   ══════════════════════════════════════════════════════════ */
+function FormContent() {
+  const content = useApi(() => getFormContent(), [])
+  const cities  = useApi(() => listGovernorates(), [])
+
+  const [card1, setCard1] = useState(null)
+  const [card2, setCard2] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved]   = useState(false)
+  const [error, setError]   = useState(null)
+
+  // Seed the editable draft once the API responds.
+  useEffect(() => {
+    if (!content.data) return
+    setCard1({
+      title:     content.data.card1.title ?? '',
+      subtitle:  content.data.card1.subtitle ?? '',
+      paragraph: content.data.card1.paragraph ?? '',
+      link1:     content.data.card1.link1 ?? '',
+      link2:     content.data.card1.link2 ?? '',
+      images:    content.data.card1.images ?? [],
+    })
+    setCard2({
+      title:     content.data.card2.title ?? '',
+      paragraph: content.data.card2.paragraph ?? '',
+      fields:    content.data.card2.fields ?? [],
+    })
+  }, [content.data])
+
+  const availableFields = content.data?.card2?.available_fields ?? []
+
+  const set1 = (k, v) => setCard1(p => ({ ...p, [k]: v }))
+  const set2 = (k, v) => setCard2(p => ({ ...p, [k]: v }))
+
+  const toggleField = (key) =>
+    setCard2(p => ({
+      ...p,
+      fields: p.fields.includes(key) ? p.fields.filter(f => f !== key) : [...p.fields, key],
+    }))
+
+  const handleSave = async () => {
+    if (saving) return
+    setSaving(true)
+    setError(null)
+    try {
+      await updateFormContent({ card1, card2 })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+      content.reload()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (content.loading) return <div className="card"><Loading /></div>
+  if (content.error)   return <div className="card"><ErrorState error={content.error} onRetry={content.reload} /></div>
+  if (!card1 || !card2) return null
+
+  const filled1 = [card1.title, card1.subtitle, card1.paragraph, card1.images.length ? '✓' : '', card1.link1, card1.link2]
+    .filter(v => String(v).trim()).length
+  const total1  = 6
+  const filled2 = [card2.title, card2.paragraph, card2.fields.length ? '✓' : '']
+    .filter(v => String(v).trim()).length
+  const total2  = 3
+
+  return (
+    <>
+      {error && <FormError message={error} />}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
 
         {/* ══════════ CARD 1 ══════════ */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          {/* Card header */}
           <div className="p-bg-1" style={{ padding: '18px 22px', borderBottom: '2px solid var(--brand-line)', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Amiri, serif', fontWeight: 700, fontSize: 17, color: 'var(--brand-ink)' }}>
@@ -86,82 +116,51 @@ export default function FormPage() {
             <ProgressRing value={filled1} total={total1} color="#E0478A" />
           </div>
 
-          {/* Card body */}
           <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
             <Field label="العنوان الرئيسي" required>
-              <input className="form-control" placeholder="مثال: تواصل معنا" value={card1.title} onChange={e => set1('title', e.target.value)} />
+              <input className="form-control" placeholder="مثال: تواصل معنا"
+                value={card1.title} onChange={e => set1('title', e.target.value)} />
             </Field>
 
             <Field label="العنوان الفرعي">
-              <input className="form-control" placeholder="مثال: نحن هنا دائماً للمساعدة" value={card1.subtitle} onChange={e => set1('subtitle', e.target.value)} />
+              <input className="form-control" placeholder="مثال: نحن هنا دائماً للمساعدة"
+                value={card1.subtitle} onChange={e => set1('subtitle', e.target.value)} />
             </Field>
 
             <Field label="البراجراف">
-              <textarea className="form-control" rows={4} placeholder="اكتب النص التفصيلي هنا..." value={card1.paragraph} onChange={e => set1('paragraph', e.target.value)} />
+              <textarea className="form-control" rows={4} placeholder="اكتب النص التفصيلي هنا..."
+                value={card1.paragraph} onChange={e => set1('paragraph', e.target.value)} />
             </Field>
 
-            {/* Images upload */}
-            <Field label={`الصور (${card1.images.length}/6)`}>
-              <input type="file" accept="image/*" multiple ref={imgRef} style={{ display: 'none' }} onChange={onImages} />
-
-              {/* Thumbnails grid */}
-              {card1.images.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 10 }}>
-                  {card1.images.map((img, i) => (
-                    <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '2px solid var(--brand-line)', aspectRatio: '1' }}>
-                      <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <button onClick={() => removeImg(i)} style={{
-                        position: 'absolute', top: 4, left: 4,
-                        background: 'rgba(61,37,64,.75)', border: 'none', borderRadius: 6,
-                        width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                      }}>
-                        <X size={11} color="#fff" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Upload button */}
-              {card1.images.length < 6 && (
-                <div onClick={() => imgRef.current.click()} style={{
-                  border: '2px dashed var(--brand-line)', borderRadius: 12,
-                  padding: '16px', cursor: 'pointer', background: 'var(--brand-cream)',
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  transition: 'border-color 0.2s',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand-pink)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--brand-line)'}
-                >
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--brand-pink-softer)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ImagePlus size={18} color="var(--brand-pink)" />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--brand-ink)' }}>اضغط لرفع الصور</div>
-                    <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginTop: 2 }}>PNG, JPG, WEBP — متعدد</div>
-                  </div>
-                </div>
-              )}
-            </Field>
+            <ImageUploader
+              label="الصور"
+              folder="form"
+              multiple
+              max={6}
+              value={card1.images}
+              onChange={images => set1('images', images)}
+            />
 
             <Field label="الرابط الأول (Link 1)">
-              <input className="form-control" placeholder="https://akwab.com/page" value={card1.link1} onChange={e => set1('link1', e.target.value)} style={{ direction: 'ltr', textAlign: 'left' }} />
+              <input className="form-control" placeholder="https://akwab.com/page"
+                value={card1.link1} onChange={e => set1('link1', e.target.value)}
+                style={{ direction: 'ltr', textAlign: 'left' }} />
             </Field>
 
             <Field label="الرابط الثاني (Link 2)">
-              <input className="form-control" placeholder="https://akwab.com/other" value={card1.link2} onChange={e => set1('link2', e.target.value)} style={{ direction: 'ltr', textAlign: 'left' }} />
+              <input className="form-control" placeholder="https://akwab.com/other"
+                value={card1.link2} onChange={e => set1('link2', e.target.value)}
+                style={{ direction: 'ltr', textAlign: 'left' }} />
             </Field>
           </div>
         </div>
 
         {/* ══════════ CARD 2 ══════════ */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          {/* Card header */}
           <div className="p-bg-2" style={{ padding: '18px 22px', borderBottom: '2px solid var(--brand-line)', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Amiri, serif', fontWeight: 700, fontSize: 17, color: 'var(--brand-ink)' }}>
-                بيانات النموذج
+                إعدادات النموذج
               </div>
               <div style={{ fontSize: 12, color: 'var(--brand-ink-soft)', marginTop: 3 }}>
                 {filled2} / {total2} حقول مكتملة
@@ -170,108 +169,284 @@ export default function FormPage() {
             <ProgressRing value={filled2} total={total2} color="#89B8D8" />
           </div>
 
-          {/* Card body */}
           <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
             <Field label="العنوان الرئيسي" required>
-              <input className="form-control" placeholder="مثال: نموذج الطلب" value={card2.title} onChange={e => set2('title', e.target.value)} />
+              <input className="form-control" placeholder="مثال: نموذج الطلب"
+                value={card2.title} onChange={e => set2('title', e.target.value)} />
             </Field>
 
             <Field label="البراجراف">
-              <textarea className="form-control" rows={3} placeholder="مثال: أكمل بياناتك وسيتواصل معك فريقنا في أقرب وقت..." value={card2.paragraph} onChange={e => set2('paragraph', e.target.value)} />
+              <textarea className="form-control" rows={3} placeholder="مثال: أكمل بياناتك وسيتواصل معك فريقنا في أقرب وقت..."
+                value={card2.paragraph} onChange={e => set2('paragraph', e.target.value)} />
             </Field>
 
             <div style={{ height: '1.5px', background: 'var(--brand-line)' }} />
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand-ink-soft)', textTransform: 'uppercase', letterSpacing: 1 }}>
-              حقول النموذج
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand-ink-soft)', letterSpacing: 1, marginBottom: 4 }}>
+                الحقول الظاهرة في النموذج
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--brand-ink-soft)', lineHeight: 1.7 }}>
+                اختر الحقول التي يراها الزائر عند ملء النموذج على الموقع.
+              </div>
             </div>
 
-            <Field label="الاسم">
-              <input className="form-control" placeholder="الاسم الكامل" value={card2.name} onChange={e => set2('name', e.target.value)} />
-            </Field>
-
-            <Field label="رقم الهاتف">
-              <input className="form-control" type="tel" placeholder="01xxxxxxxxx" value={card2.phone} onChange={e => set2('phone', e.target.value)} />
-            </Field>
-
-            <Field label="المحافظة">
-              <select className="form-control" value={card2.governorate} onChange={e => set2('governorate', e.target.value)}>
-                {GOVERNORATES.map(g => (
-                  <option key={g} value={g} disabled={g === 'اختر المحافظة'}>{g}</option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="الكمية">
-              <input className="form-control" type="number" min="1" placeholder="0" value={card2.quantity} onChange={e => set2('quantity', e.target.value)} />
-            </Field>
-
-            <Field label="ملاحظات">
-              <textarea className="form-control" rows={3} placeholder="أي ملاحظات أو تفاصيل إضافية..." value={card2.notes} onChange={e => set2('notes', e.target.value)} />
-            </Field>
+            {availableFields.map(f => (
+              <FieldToggle
+                key={f.key}
+                checked={card2.fields.includes(f.key)}
+                onChange={() => toggleField(f.key)}
+                label={f.label}
+                hint={f.key === 'governorate'
+                  ? `قائمة منسدلة — ${num((cities.data ?? []).length)} محافظة`
+                  : `نوع الحقل: ${f.type}`}
+              />
+            ))}
           </div>
         </div>
-
       </div>
 
       {/* ══════ زرار الحفظ الموحّد ══════ */}
       <div style={{
-        marginTop: 24,
-        background: '#fff',
-        border: '2px solid var(--brand-line)',
-        borderRadius: 'var(--radius-brand)',
-        padding: '18px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: 'var(--shadow-sm)',
+        marginTop: 24, marginBottom: 28,
+        background: '#fff', border: '2px solid var(--brand-line)',
+        borderRadius: 'var(--radius-brand)', padding: '18px 24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: 'var(--shadow-sm)', flexWrap: 'wrap', gap: 12,
       }}>
-        {/* progress summary */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 10, height: 10, borderRadius: '50%',
-              background: filled1 === total1 ? '#16a34a' : 'var(--brand-pink)',
-            }} />
-            <span style={{ fontSize: 13, color: 'var(--brand-ink-soft)', fontWeight: 600 }}>
-              محتوى القسم:&nbsp;
-              <span style={{ color: filled1 === total1 ? '#15803d' : 'var(--brand-pink)', fontWeight: 800 }}>
-                {filled1}/{total1}
-              </span>
-            </span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+          <ProgressChip label="محتوى القسم"   filled={filled1} total={total1} color="var(--brand-pink)" />
           <div style={{ width: 1, height: 20, background: 'var(--brand-line)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 10, height: 10, borderRadius: '50%',
-              background: filled2 === total2 ? '#16a34a' : '#89B8D8',
-            }} />
-            <span style={{ fontSize: 13, color: 'var(--brand-ink-soft)', fontWeight: 600 }}>
-              بيانات النموذج:&nbsp;
-              <span style={{ color: filled2 === total2 ? '#15803d' : '#89B8D8', fontWeight: 800 }}>
-                {filled2}/{total2}
-              </span>
+          <ProgressChip label="إعدادات النموذج" filled={filled2} total={total2} color="#89B8D8" />
+        </div>
+
+        <button className="btn btn-primary" onClick={handleSave} disabled={saving}
+          style={{ minWidth: 150, justifyContent: 'center', fontSize: 15 }}>
+          {saving   ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> جاري الحفظ...</>
+            : saved ? <><CheckCircle2 size={16} /> تم الحفظ بنجاح</>
+            :         <><Save size={16} /> حفظ الكل</>}
+        </button>
+      </div>
+    </>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════
+   Submissions — the requests the public form produced
+   ══════════════════════════════════════════════════════════ */
+function Submissions() {
+  const [status, setStatus] = useState('')
+  const [page, setPage]     = useState(1)
+  const [view, setView]     = useState(null)
+  const [busy, setBusy]     = useState(false)
+  const { refreshBadges }   = useBadges()
+
+  useEffect(() => { setPage(1) }, [status])
+
+  const list  = useApi(() => submissionsApi.listSubmissions({ status, page, per_page: 15 }), [status, page])
+  const stats = useApi(() => submissionsApi.submissionStats(), [])
+
+  const rows = list.data ?? []
+
+  const afterChange = () => { list.reload(); stats.reload(); refreshBadges() }
+
+  const changeStatus = async (id, next) => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await submissionsApi.updateSubmissionStatus(id, next)
+      setView(prev => prev?.id === id
+        ? { ...prev, status: next, status_label: REQUEST_STATUSES.find(s => s.key === next)?.label }
+        : prev)
+      afterChange()
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async (id) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return
+    try {
+      await submissionsApi.deleteSubmission(id)
+      setView(null)
+      afterChange()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  return (
+    <>
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+        {[
+          { label: 'إجمالي الطلبات', value: stats.data?.total,     bg: 'p-bg-1', color: '#E0478A' },
+          { label: 'جديد',           value: stats.data?.new,       bg: 'p-bg-4', color: '#6B4E6E' },
+          { label: 'قيد المراجعة',   value: stats.data?.in_review, bg: 'p-bg-2', color: '#89B8D8' },
+          { label: 'تم الرد',        value: stats.data?.replied,   bg: 'p-bg-3', color: '#C8A84B' },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div className={s.bg} style={{
+              width: 46, height: 46, borderRadius: 'var(--radius-brand-sm)', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: s.color,
+            }}>{s.value === undefined ? '—' : num(s.value)}</div>
+            <span style={{ fontSize: 13, color: 'var(--brand-ink-soft)', fontWeight: 600 }}>{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        <div className="toolbar">
+          <div className="card-title" style={{ marginBottom: 0 }}>طلبات النموذج</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <select value={status} onChange={e => setStatus(e.target.value)} style={selectStyle}>
+              <option value="">كل الحالات</option>
+              {REQUEST_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+            </select>
+            <span style={{ fontSize: 13, color: 'var(--brand-ink-soft)' }}>
+              {num(list.meta?.total ?? rows.length)} طلب
             </span>
           </div>
         </div>
 
-        {/* save button */}
-        <button
-          className="btn btn-primary"
-          onClick={handleSave}
-          style={{ minWidth: 140, justifyContent: 'center', fontSize: 15 }}
+        <StateBlock
+          loading={list.loading} error={list.error} onRetry={list.reload}
+          isEmpty={!rows.length} emptyLabel="لا توجد طلبات بعد"
         >
-          {saved
-            ? <><CheckCircle2 size={16} /> تم الحفظ بنجاح</>
-            : <><Save size={16} /> حفظ الكل</>
-          }
-        </button>
+          <>
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>الاسم</th>
+                    <th>الهاتف</th>
+                    <th>المحافظة</th>
+                    <th>الكمية</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(r => (
+                    <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setView(r)}>
+                      <td style={{ fontWeight: 700 }}>{r.name || '—'}</td>
+                      <td style={{ fontSize: 13 }}>{r.phone || '—'}</td>
+                      <td>{r.governorate || '—'}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{r.quantity ?? '—'}</td>
+                      <td style={{ fontSize: 12, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>{r.date}</td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <span className={`badge ${badgeClass(REQUEST_BADGE, r.status)}`}>{r.status_label}</span>
+                      </td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => setView(r)} style={{
+                            background: 'var(--brand-pink-softer)', border: 'none', borderRadius: 10,
+                            width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <Eye size={14} color="var(--brand-pink)" />
+                          </button>
+                          <button onClick={() => remove(r.id)} style={{
+                            background: 'var(--error-soft)', border: 'none', borderRadius: 10,
+                            width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <Trash2 size={14} color="var(--error)" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination meta={list.meta} onPage={setPage} />
+          </>
+        </StateBlock>
       </div>
-    </div>
+
+      {/* Detail modal */}
+      {view && (
+        <div className="modal-overlay" onClick={() => setView(null)}>
+          <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>طلب #{view.id}</h2>
+                <span className={`badge ${badgeClass(REQUEST_BADGE, view.status)}`} style={{ marginTop: 6 }}>
+                  {view.status_label}
+                </span>
+              </div>
+              <button onClick={() => setView(null)} style={{ background: 'none', border: 'none' }}>
+                <X size={20} color="var(--brand-ink-soft)" />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+              {[
+                { label: 'الاسم',     value: view.name },
+                { label: 'الهاتف',    value: view.phone },
+                { label: 'البريد',    value: view.email },
+                { label: 'المحافظة',  value: view.governorate },
+                { label: 'الكمية',    value: view.quantity },
+                { label: 'التاريخ',   value: view.date },
+              ].map(f => (
+                <div key={f.label} className="p-bg-1" style={{ borderRadius: 'var(--radius-brand-sm)', padding: '11px 14px' }}>
+                  <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginBottom: 2 }}>{f.label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, wordBreak: 'break-word' }}>
+                    {f.value === null || f.value === undefined || f.value === '' ? '—' : f.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {view.notes && (
+              <div style={{
+                background: 'var(--brand-cream)', borderRadius: 'var(--radius-brand-sm)',
+                padding: 16, marginBottom: 16, border: '1.5px solid var(--brand-line)',
+              }}>
+                <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginBottom: 8 }}>ملاحظات</div>
+                <p style={{ fontSize: 14, lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{view.notes}</p>
+              </div>
+            )}
+
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>تحديث الحالة</div>
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 20 }}>
+              {REQUEST_STATUSES.map(s => {
+                const active = view.status === s.key
+                return (
+                  <button key={s.key} onClick={() => changeStatus(view.id, s.key)} disabled={busy || active} style={{
+                    padding: '7px 16px', borderRadius: 10,
+                    fontFamily: 'Cairo', fontWeight: 700, fontSize: 13,
+                    border: '2px solid',
+                    borderColor: active ? 'var(--brand-pink)' : 'var(--brand-line)',
+                    background:  active ? 'var(--brand-pink)' : '#fff',
+                    color:       active ? '#fff'              : 'var(--brand-ink-soft)',
+                    transition: 'all 0.2s',
+                  }}>{s.label}</button>
+                )
+              })}
+            </div>
+
+            <div className="modal-footer">
+              <button onClick={() => remove(view.id)} className="btn btn-danger" disabled={busy}>
+                <Trash2 size={14} /> حذف الطلب
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
-/* ─── Field wrapper ─── */
+/* ─── small pieces ─── */
+
+const selectStyle = {
+  padding: '9px 16px', borderRadius: 'var(--radius-brand-sm)', border: '2px solid var(--brand-line)',
+  fontFamily: 'Cairo', fontSize: 14, background: '#fff', color: 'var(--brand-ink)', cursor: 'pointer',
+}
+
 function Field({ label, required, children }) {
   return (
     <div>
@@ -284,11 +459,52 @@ function Field({ label, required, children }) {
   )
 }
 
-/* ─── Progress Ring (SVG) ─── */
+function FieldToggle({ checked, onChange, label, hint }) {
+  return (
+    <div
+      onClick={onChange}
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: 12,
+        padding: '12px 14px', borderRadius: 'var(--radius-brand-sm)',
+        border: `2px solid ${checked ? 'var(--brand-pink)' : 'var(--brand-line)'}`,
+        background: checked ? 'var(--brand-pink-softer)' : '#fff',
+        cursor: 'pointer', transition: 'all 0.2s', userSelect: 'none',
+      }}
+    >
+      <div style={{
+        width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
+        border: `2px solid ${checked ? 'var(--brand-pink)' : 'var(--brand-line)'}`,
+        background: checked ? 'var(--brand-pink)' : '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'all 0.2s',
+      }}>
+        {checked && <span style={{ color: '#fff', fontSize: 12, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+      </div>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--brand-ink)' }}>{label}</div>
+        <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginTop: 2 }}>{hint}</div>
+      </div>
+    </div>
+  )
+}
+
+function ProgressChip({ label, filled, total, color }) {
+  const done = filled === total
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ width: 10, height: 10, borderRadius: '50%', background: done ? '#16a34a' : color }} />
+      <span style={{ fontSize: 13, color: 'var(--brand-ink-soft)', fontWeight: 600 }}>
+        {label}:&nbsp;
+        <span style={{ color: done ? '#15803d' : color, fontWeight: 800 }}>{filled}/{total}</span>
+      </span>
+    </div>
+  )
+}
+
 function ProgressRing({ value, total, color }) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0
-  const r   = 18
-  const circ = 2 * Math.PI * r
+  const pct    = total > 0 ? Math.round((value / total) * 100) : 0
+  const r      = 18
+  const circ   = 2 * Math.PI * r
   const offset = circ - (pct / 100) * circ
 
   return (
@@ -303,7 +519,7 @@ function ProgressRing({ value, total, color }) {
       <div style={{
         position: 'absolute', inset: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 11, fontWeight: 800, color: color,
+        fontSize: 11, fontWeight: 800, color,
       }}>{pct}%</div>
     </div>
   )

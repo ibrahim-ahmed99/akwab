@@ -1,22 +1,35 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { getBadges } from '../services/dashboard'
 
 const BadgesContext = createContext({})
 
-/* initial counts from the seed data in each page */
-const INITIAL = {
-  '/contact': 2,   // messages with status 'جديد'
-  '/orders':  4,   // orders that are جاري | معلق | شحن
-  '/form':    1,   // new form submission
+/** API keys → sidebar route paths. */
+const KEY_TO_PATH = {
+  contact_new:   '/contact',
+  orders_active: '/orders',
+  form_new:      '/form',
 }
 
 export function BadgesProvider({ children }) {
-  const [badges, setBadges] = useState(INITIAL)
+  const [badges, setBadges] = useState({})
 
-  const setBadge = (path, count) =>
-    setBadges(prev => ({ ...prev, [path]: count }))
+  const refreshBadges = useCallback(() => {
+    return getBadges()
+      .then(res => {
+        const next = {}
+        for (const [key, path] of Object.entries(KEY_TO_PATH)) {
+          next[path] = res.data?.[key] ?? 0
+        }
+        setBadges(next)
+      })
+      // A failed badge poll must never break the page it was triggered from.
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => { refreshBadges() }, [refreshBadges])
 
   return (
-    <BadgesContext.Provider value={{ badges, setBadge }}>
+    <BadgesContext.Provider value={{ badges, refreshBadges }}>
       {children}
     </BadgesContext.Provider>
   )

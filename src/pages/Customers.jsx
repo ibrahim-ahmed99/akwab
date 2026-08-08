@@ -1,5 +1,14 @@
-import { useState } from 'react'
-import { Edit2, Trash2, X, Star } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Edit2, Trash2, X, Star, Search, Loader2 } from 'lucide-react'
+import { useApi } from '../hooks/useApi'
+import { useDebounced } from '../hooks/useDebounced'
+import StateBlock from '../components/StateBlock'
+import Pagination from '../components/Pagination'
+import FormError from '../components/FormError'
+import * as customersApi from '../services/customers'
+import { listGovernorates } from '../services/settings'
+import { CUSTOMER_BADGE, badgeClass, CUSTOMER_STATUSES } from '../services/statusMaps'
+import { money, num } from '../services/format'
 
 const AVATAR_GRADIENTS = [
   'linear-gradient(135deg,#E0478A,#C8A84B)',
@@ -12,44 +21,71 @@ const AVATAR_GRADIENTS = [
   'linear-gradient(135deg,#C8A84B,#6B4E6E)',
 ]
 
-const initialCustomers = [
-  { id: 1, name: 'أحمد محمد السيد',   email: 'ahmed@email.com',  phone: '01012345678', city: 'القاهرة',     orders: 12, spent: 45000, status: 'VIP',  joined: '2024/01/15', avatar: 'أ' },
-  { id: 2, name: 'سارة أحمد علي',     email: 'sara@email.com',   phone: '01123456789', city: 'الجيزة',      orders: 8,  spent: 28000, status: 'نشط',  joined: '2024/03/20', avatar: 'س' },
-  { id: 3, name: 'محمود علي محمد',    email: 'mahmoud@email.com',phone: '01234567890', city: 'الإسكندرية', orders: 3,  spent: 9600,  status: 'نشط',  joined: '2024/06/10', avatar: 'م' },
-  { id: 4, name: 'فاطمة خالد حسن',   email: 'fatma@email.com',  phone: '01098765432', city: 'المعادي',     orders: 15, spent: 62000, status: 'VIP',  joined: '2023/11/05', avatar: 'ف' },
-  { id: 5, name: 'عمر يوسف إبراهيم', email: 'omar@email.com',   phone: '01187654321', city: 'المنصورة',   orders: 1,  spent: 22000, status: 'جديد', joined: '2026/05/28', avatar: 'ع' },
-  { id: 6, name: 'نورا حسن محمود',    email: 'nora@email.com',   phone: '01565432109', city: 'الزمالك',     orders: 20, spent: 95000, status: 'VIP',  joined: '2023/08/14', avatar: 'ن' },
-  { id: 7, name: 'ياسر إبراهيم كمال', email: 'yasser@email.com', phone: '01076543210', city: 'طنطا',        orders: 5,  spent: 12400, status: 'نشط',  joined: '2024/09/01', avatar: 'ي' },
-  { id: 8, name: 'منى عبدالله رمضان', email: 'mona@email.com',   phone: '01234509876', city: 'أسوان',       orders: 7,  spent: 18500, status: 'نشط',  joined: '2024/04/22', avatar: 'م' },
-]
-
-const statusBadge = { 'VIP': 'badge-gold', 'نشط': 'badge-success', 'جديد': 'badge-info', 'محظور': 'badge-danger' }
-
 export default function Customers() {
-  const [customers, setCustomers] = useState(initialCustomers)
+  const [search, setSearch]       = useState('')
+  const [status, setStatus]       = useState('')
+  const [page, setPage]           = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing]     = useState(null)
-  const [form, setForm] = useState({ name: '', email: '', phone: '', city: '', status: 'نشط' })
+  const [form, setForm]           = useState({ name: '', email: '', phone: '', city_id: '', status: 'active' })
+  const [saving, setSaving]       = useState(false)
+  const [formError, setFormError] = useState(null)
+
+  const debouncedSearch = useDebounced(search)
+
+  useEffect(() => { setPage(1) }, [debouncedSearch, status])
+
+  const list = useApi(
+    () => customersApi.listCustomers({ search: debouncedSearch, status, page, per_page: 15 }),
+    [debouncedSearch, status, page],
+  )
+  const cities = useApi(() => listGovernorates(), [])
+
+  const customers = list.data ?? []
 
   const openEdit = (c) => {
     setEditing(c.id)
-    setForm({ name: c.name, email: c.email, phone: c.phone, city: c.city, status: c.status })
+    setForm({
+      name: c.name ?? '',
+      email: c.email ?? '',
+      phone: c.phone ?? '',
+      city_id: c.city_id ?? '',
+      status: c.status ?? 'active',
+    })
+    setFormError(null)
     setShowModal(true)
   }
 
-  const handleSave = () => {
-    if (!form.name.trim()) return
-    if (editing) {
-      setCustomers(prev => prev.map(c => c.id === editing ? { ...c, ...form } : c))
-    } else {
-      setCustomers(prev => [...prev, { id: Date.now(), ...form, orders: 0, spent: 0, joined: new Date().toLocaleDateString('ar-EG'), avatar: form.name[0] || 'ع' }])
+  const handleSave = async () => {
+    if (!form.name.trim() || saving) return
+
+    setSaving(true)
+    setFormError(null)
+    try {
+      await customersApi.updateCustomer(editing, {
+        name: form.name.trim(),
+        email: form.email || null,
+        phone: form.phone || null,
+        city_id: form.city_id === '' ? null : Number(form.city_id),
+        status: form.status,
+      })
+      setShowModal(false)
+      list.reload()
+    } catch (err) {
+      setFormError(err.message)
+    } finally {
+      setSaving(false)
     }
-    setShowModal(false)
   }
 
-  const handleDelete = (id) => {
-    if (confirm('هل أنت متأكد من حذف هذا العميل؟'))
-      setCustomers(prev => prev.filter(c => c.id !== id))
+  const handleDelete = async (id) => {
+    if (!confirm('هل أنت متأكد من حذف هذا العميل؟')) return
+    try {
+      await customersApi.deleteCustomer(id)
+      list.reload()
+    } catch (err) {
+      alert(err.message)
+    }
   }
 
   return (
@@ -62,101 +98,164 @@ export default function Customers() {
       </div>
 
       <div className="card">
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>العميل</th>
-                <th>البريد الإلكتروني</th>
-                <th>الهاتف</th>
-                <th>المدينة</th>
-                <th>الطلبات</th>
-                <th>الإنفاق الكلي</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((c, i) => (
-                <tr key={c.id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div className="avatar" style={{ background: AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length], color: '#fff', fontWeight: 800 }}>
-                        {c.avatar}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 700, color: 'var(--brand-ink)', fontSize: 14 }}>{c.name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginTop: 1 }}>منذ {c.joined}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ fontSize: 13, color: 'var(--brand-ink-soft)' }}>{c.email}</td>
-                  <td style={{ fontSize: 13 }}>{c.phone}</td>
-                  <td>{c.city}</td>
-                  <td style={{ textAlign: 'center', fontWeight: 800, color: 'var(--brand-pink)' }}>{c.orders}</td>
-                  <td style={{ fontWeight: 800 }}>ج.م {c.spent.toLocaleString('ar')}</td>
-                  <td>
-                    <span className={`badge ${statusBadge[c.status]}`}>
-                      {c.status === 'VIP' && <Star size={11} fill="currentColor" />}
-                      {c.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => openEdit(c)} style={{ background: 'var(--brand-cream)', border: '1.5px solid var(--brand-line)', borderRadius: 10, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <Edit2 size={13} color="var(--brand-ink-soft)" />
-                      </button>
-                      <button onClick={() => handleDelete(c.id)} style={{ background: 'var(--error-soft)', border: 'none', borderRadius: 10, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <Trash2 size={13} color="var(--error)" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="toolbar">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div className="search-bar">
+              <Search size={15} color="var(--brand-ink-soft)" />
+              <input placeholder="ابحث بالاسم أو البريد أو الهاتف..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <select value={status} onChange={e => setStatus(e.target.value)} style={selectStyle}>
+              <option value="">كل الحالات</option>
+              {CUSTOMER_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+            </select>
+          </div>
+          <span style={{ fontSize: 13, color: 'var(--brand-ink-soft)' }}>
+            {num(list.meta?.total ?? customers.length)} عميل
+          </span>
         </div>
+
+        <StateBlock
+          loading={list.loading} error={list.error} onRetry={list.reload}
+          isEmpty={!customers.length} emptyLabel="لا يوجد عملاء"
+        >
+          <>
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>العميل</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الهاتف</th>
+                    <th>المدينة</th>
+                    <th>الطلبات</th>
+                    <th>الإنفاق الكلي</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map((c, i) => (
+                    <tr key={c.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div className="avatar" style={{
+                            background: AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length],
+                            color: '#fff', fontWeight: 800,
+                          }}>{c.avatar}</div>
+                          <div>
+                            <div style={{ fontWeight: 700, color: 'var(--brand-ink)', fontSize: 14 }}>{c.name}</div>
+                            <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginTop: 1 }}>منذ {c.joined}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ fontSize: 13, color: 'var(--brand-ink-soft)' }}>{c.email || '—'}</td>
+                      <td style={{ fontSize: 13 }}>{c.phone || '—'}</td>
+                      <td>{c.city || '—'}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: 'var(--brand-pink)' }}>{num(c.orders)}</td>
+                      <td style={{ fontWeight: 800 }}>{money(c.spent)}</td>
+                      <td>
+                        <span className={`badge ${badgeClass(CUSTOMER_BADGE, c.status)}`}>
+                          {c.status === 'vip' && <Star size={11} fill="currentColor" />}
+                          {c.status_label}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => openEdit(c)} style={iconBtn}>
+                            <Edit2 size={13} color="var(--brand-ink-soft)" />
+                          </button>
+                          <button onClick={() => handleDelete(c.id)} style={dangerBtn}>
+                            <Trash2 size={13} color="var(--error)" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination meta={list.meta} onPage={setPage} />
+          </>
+        </StateBlock>
       </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={() => !saving && setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>تعديل بيانات العميل</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} color="var(--brand-ink-soft)" /></button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none' }}>
+                <X size={20} color="var(--brand-ink-soft)" />
+              </button>
             </div>
+
+            {formError && <FormError message={formError} />}
+
             <div className="form-grid">
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label className="form-label">الاسم الكامل *</label>
-                <input className="form-control" placeholder="الاسم الكامل" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                <input className="form-control" placeholder="الاسم الكامل"
+                  value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="form-group">
                 <label className="form-label">البريد الإلكتروني</label>
-                <input className="form-control" type="email" placeholder="example@email.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                <input className="form-control" type="email" placeholder="example@email.com"
+                  value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
               </div>
               <div className="form-group">
                 <label className="form-label">رقم الهاتف</label>
-                <input className="form-control" placeholder="01xxxxxxxxx" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                <input className="form-control" placeholder="01xxxxxxxxx"
+                  value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">المدينة</label>
-                <input className="form-control" placeholder="القاهرة" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
+                <label className="form-label">المحافظة</label>
+                <select className="form-control" value={form.city_id}
+                  onChange={e => setForm({ ...form, city_id: e.target.value })}>
+                  <option value="">بدون</option>
+                  {(cities.data ?? []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               </div>
               <div className="form-group">
                 <label className="form-label">الحالة</label>
-                <select className="form-control" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                  <option>نشط</option><option>VIP</option><option>جديد</option><option>محظور</option>
+                <select className="form-control" value={form.status}
+                  onChange={e => setForm({ ...form, status: e.target.value })}>
+                  {CUSTOMER_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                 </select>
               </div>
             </div>
+
+            <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginBottom: 14, lineHeight: 1.7 }}>
+              💡 الحالة تُشتق من الطلبات والإنفاق تلقائياً — اختيار «محظور» هو الوحيد الذي يُخزَّن بشكل دائم.
+            </div>
+
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>إلغاء</button>
-              <button className="btn btn-primary" onClick={handleSave}>حفظ التعديلات</button>
+              <button className="btn btn-outline" onClick={() => setShowModal(false)} disabled={saving}>إلغاء</button>
+              <button className="btn btn-primary" onClick={handleSave} disabled={saving || !form.name.trim()}>
+                {saving
+                  ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> جاري الحفظ...</>
+                  : 'حفظ التعديلات'}
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
   )
+}
+
+const selectStyle = {
+  padding: '9px 16px', borderRadius: 'var(--radius-brand-sm)', border: '2px solid var(--brand-line)',
+  fontFamily: 'Cairo', fontSize: 14, background: '#fff', color: 'var(--brand-ink)', cursor: 'pointer',
+}
+
+const iconBtn = {
+  background: 'var(--brand-cream)', border: '1.5px solid var(--brand-line)',
+  borderRadius: 10, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+}
+
+const dangerBtn = {
+  background: 'var(--error-soft)', border: 'none',
+  borderRadius: 10, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
 }

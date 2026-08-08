@@ -4,6 +4,7 @@ import {
   Users, Phone, Info, ChevronLeft, Menu, Home, ClipboardList
 } from 'lucide-react'
 import { useBadges } from '../context/BadgesContext'
+import { useAuth } from '../context/AuthContext'
 
 const navItems = [
   { to: '/',           icon: LayoutDashboard, label: 'لوحة التحكم' },
@@ -19,6 +20,7 @@ const navItems = [
 
 export default function Sidebar({ collapsed, onToggle }) {
   const { badges } = useBadges()
+  const { admin } = useAuth()
   return (
     <aside style={{
       position: 'fixed',
@@ -207,11 +209,16 @@ export default function Sidebar({ collapsed, onToggle }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontWeight: 800, fontSize: 15, flexShrink: 0,
           boxShadow: '0 4px 12px rgba(200,168,75,0.35)',
-        }}>م</div>
+        }}>{admin?.avatar || 'م'}</div>
         {!collapsed && (
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#FEFCF0', whiteSpace: 'nowrap' }}>المدير العام</div>
-            <div style={{ fontSize: 11, color: 'rgba(240,227,232,0.4)', whiteSpace: 'nowrap' }}>admin@akwab.com</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#FEFCF0', whiteSpace: 'nowrap' }}>
+              {admin?.name || '—'}
+            </div>
+            <div style={{
+              fontSize: 11, color: 'rgba(240,227,232,0.4)', whiteSpace: 'nowrap',
+              overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{admin?.email || ''}</div>
           </div>
         )}
       </div>
