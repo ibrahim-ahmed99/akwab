@@ -63,7 +63,7 @@ export default {
   shop: {
     kicker: 'كل المنتجات', title: 'المتجر',
     desc: 'تصفح كل تشكيلاتنا — من الخزف الدافئ إلى البورسلين الراقي.',
-    all: 'الكل',
+    all: 'الكل', empty: 'لا توجد منتجات في هذا القسم حالياً.',
   },
   about: {
     heroTitle: 'قصة أكواب',
@@ -190,8 +190,9 @@ export default {
     orderSummary: 'ملخص الطلب', subtotal: 'المجموع الفرعي',
     shippingFee: 'رسوم الشحن', total: 'الإجمالي',
     confirmOrder: 'تأكيد الطلب', sending: 'جاري إرسال الطلب...',
+    receiptLabel: 'صورة إيصال التحويل',
     terms: 'بالضغط على تأكيد الطلب أنت توافق على شروط الاستخدام وسياسة الخصوصية.',
-    errors: { name: 'الاسم مطلوب', phone: 'رقم هاتف مصري غير صحيح', governorate: 'اختر المحافظة', city: 'المدينة مطلوبة', street: 'العنوان مطلوب' },
+    errors: { name: 'الاسم مطلوب', phone: 'رقم هاتف مصري غير صحيح', governorate: 'اختر المحافظة', city: 'المدينة مطلوبة', street: 'العنوان مطلوب', receipt: 'يرجى رفع صورة إيصال التحويل' },
   },
   wishlist: {
     empty: 'قائمة المفضلة فارغة',
@@ -201,10 +202,12 @@ export default {
   },
   product: {
     notFound: 'المنتج غير موجود', backToShop: 'عودة للمتجر',
-    home: 'الرئيسية', shop: 'المتجر', ratingLabel: 'تقييم',
-    details: 'التفاصيل', handmade: 'صناعة يدوية', microwaveSafe: 'آمن للاستخدام مع الميكروويف',
-    shippingNote: 'الشحن خلال من 3 الى 5 أيام عمل غير شامل الجمعة والسبت والاجازات الرسمية',
+    home: 'الرئيسية', shop: 'المتجر',
     addToCart: 'أضف للسلة', added: 'تمت الإضافة',
+    quantity: 'الكمية', save: 'وفّري', share: 'شاركي',
+    description: 'الوصف', specs: 'المواصفات', shipping: 'الشحن',
+    mayLike: 'قد يعجبك أيضًا', related: 'منتجات ذات صلة',
+    prevImage: 'الصورة السابقة', nextImage: 'الصورة التالية',
   },
   orderConfirmation: {
     title: 'تم استلام طلبك!', thanks: 'شكراً لتسوّقك معنا في أكواب',
@@ -246,5 +249,11 @@ export default {
     quickTags: ['خزف', 'بورسلين', 'زجاج', 'هدية', 'كوب'],
   },
   notFound: { message: 'الصفحة غير موجودة.' },
-  productCard: { addToCart: 'أضف للسلة', added: 'تمت الإضافة' },
+  productCard: {
+    addToCart: 'أضف للسلة', added: 'تمت الإضافة',
+    discount: 'خصم',
+    badge: { new: 'جديد', hot: 'الأكثر طلباً', sale: 'خصم' },
+    outOfStock: 'غير متوفر',
+    addWish: 'إضافة للمفضلة', removeWish: 'إزالة من المفضلة',
+  },
 };

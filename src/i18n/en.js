@@ -61,9 +61,9 @@ export default {
     reviewAlt: 'Customer review',
   },
   shop: {
-    kicker: 'All Products', title: 'The Shop',
-    desc: 'Browse all our collections — from warm ceramics to elegant porcelain.',
-    all: 'All',
+    kicker: 'All products', title: 'Shop',
+    desc: 'Browse all our collections — from warm pottery to fine porcelain.',
+    all: 'All', empty: 'No products in this category yet.',
   },
   about: {
     heroTitle: "Akwab's Story",
@@ -190,8 +190,9 @@ export default {
     orderSummary: 'Order Summary', subtotal: 'Subtotal',
     shippingFee: 'Shipping Fee', total: 'Total',
     confirmOrder: 'Confirm Order', sending: 'Sending Order...',
+    receiptLabel: 'Transfer receipt image',
     terms: 'By clicking Confirm Order you agree to our Terms of Use and Privacy Policy.',
-    errors: { name: 'Name is required', phone: 'Invalid Egyptian phone number', governorate: 'Please choose a governorate', city: 'City is required', street: 'Address is required' },
+    errors: { name: 'Name is required', phone: 'Invalid Egyptian phone number', governorate: 'Please choose a governorate', city: 'City is required', street: 'Address is required', receipt: 'Please upload the transfer receipt' },
   },
   wishlist: {
     empty: 'Wishlist is Empty',
@@ -201,10 +202,12 @@ export default {
   },
   product: {
     notFound: 'Product not found', backToShop: 'Back to Shop',
-    home: 'Home', shop: 'Shop', ratingLabel: 'rating',
-    details: 'Details', handmade: 'Handmade', microwaveSafe: 'Microwave safe',
-    shippingNote: 'Shipping within 3 to 5 business days (excl. Fri, Sat & holidays)',
+    home: 'Home', shop: 'Shop',
     addToCart: 'Add to Cart', added: 'Added',
+    quantity: 'Quantity', save: 'Save', share: 'Share',
+    description: 'Description', specs: 'Specifications', shipping: 'Shipping',
+    mayLike: 'You may also like', related: 'Related products',
+    prevImage: 'Previous image', nextImage: 'Next image',
   },
   orderConfirmation: {
     title: 'Order Received!', thanks: 'Thank you for shopping with us at Akwab',
@@ -246,5 +249,11 @@ export default {
     quickTags: ['Ceramic', 'Porcelain', 'Glass', 'Gift', 'Cup'],
   },
   notFound: { message: 'Page not found.' },
-  productCard: { addToCart: 'Add to Cart', added: 'Added' },
+  productCard: {
+    addToCart: 'Add to Cart', added: 'Added',
+    discount: 'off',
+    badge: { new: 'New', hot: 'Best seller', sale: 'Sale' },
+    outOfStock: 'Out of stock',
+    addWish: 'Add to wishlist', removeWish: 'Remove from wishlist',
+  },
 };

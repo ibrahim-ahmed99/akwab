@@ -54,7 +54,7 @@ export default function Auth() {
 
             {tab === 'login'
               ? <LoginForm />
-              : <RegisterForm onSwitch={() => setTab('login')} />
+              : <RegisterForm />
             }
           </div>
         </div>
@@ -86,20 +86,33 @@ function LoginForm() {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+
     setSubmitting(true);
-    setTimeout(() => {
-      login({ name: form.credential.includes('@') ? 'مستخدم' : form.credential, phone: form.credential });
-      setSubmitting(false);
+    setErrors({});
+    try {
+      // Signing in merges whatever the guest identity had in its cart and
+      // wishlist into the account, server-side.
+      await login(form.credential.trim(), form.password);
       navigate('/');
-    }, 1000);
+    } catch (err) {
+      setErrors(
+        err.status === 401
+          ? { _: t('auth.invalidCredentials') }
+          : mapErrors(err, t),
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      {errors._ && <FormError message={errors._} />}
+
       <Field label={t('auth.credentialLabel')} error={errors.credential} required>
         <input
           type="text" value={form.credential} dir="ltr"
@@ -137,9 +150,6 @@ function LoginForm() {
           />
           <span className="text-brand-ink-soft">{t('auth.rememberMe')}</span>
         </label>
-        <button type="button" className="text-brand-pink hover:underline font-medium">
-          {t('auth.forgotPass')}
-        </button>
       </div>
 
       <button
@@ -148,17 +158,14 @@ function LoginForm() {
       >
         {submitting ? <Spinner label={t('auth.loggingIn')} /> : t('auth.loginBtn')}
       </button>
-
-      <Divider />
-      <SocialButtons />
     </form>
   );
 }
 
 /* ── Register ── */
-function RegisterForm({ onSwitch }) {
+function RegisterForm() {
   const { t } = useLang();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setFormState] = useState({
     name: '', phone: '', email: '', password: '', confirm: '', terms: false,
@@ -166,7 +173,6 @@ function RegisterForm({ onSwitch }) {
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
 
   const set = (k, v) => {
     setFormState(p => ({ ...p, [k]: v }));
@@ -184,37 +190,33 @@ function RegisterForm({ onSwitch }) {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    setSubmitting(true);
-    setTimeout(() => {
-      login({ name: form.name, phone: form.phone, email: form.email });
-      setSubmitting(false);
-      navigate('/');
-    }, 1200);
-  };
 
-  if (done) {
-    return (
-      <div className="text-center py-6">
-        <div className="w-16 h-16 rounded-full bg-brand-pink-softer flex items-center justify-center mx-auto mb-4">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#E0478A" strokeWidth="2.5" strokeLinecap="round" className="w-8 h-8">
-            <path d="m5 12 5 5 9-11" />
-          </svg>
-        </div>
-        <h3 className="text-xl mb-2 font-amiri">{t('auth.accountCreated')}</h3>
-        <p className="text-brand-ink-soft text-sm mb-6">{t('auth.canLoginNow')}</p>
-        <button onClick={onSwitch} className="btn btn-primary justify-center">
-          {t('auth.loginNow')}
-        </button>
-      </div>
-    );
-  }
+    setSubmitting(true);
+    setErrors({});
+    try {
+      await register({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim() || undefined,
+        password: form.password,
+        password_confirmation: form.confirm,
+      });
+      navigate('/');
+    } catch (err) {
+      setErrors(mapErrors(err, t));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      {errors._ && <FormError message={errors._} />}
+
       <Field label={t('auth.fullName')} error={errors.name} required>
         <input
           type="text" value={form.name}
@@ -281,9 +283,7 @@ function RegisterForm({ onSwitch }) {
           />
           <span className="text-sm text-brand-ink-soft leading-relaxed">
             {t('auth.agreeTerms')}{' '}
-            <button type="button" className="text-brand-pink hover:underline font-medium">{t('auth.termsLink')}</button>
-            {' '}{t('auth.and')}{' '}
-            <button type="button" className="text-brand-pink hover:underline font-medium">{t('auth.privacyLink')}</button>
+            <Link to="/faq" className="text-brand-pink hover:underline font-medium">{t('auth.termsLink')}</Link>
           </span>
         </label>
         {errors.terms && <p className="text-xs text-[#D64545] mt-1">{errors.terms}</p>}
@@ -296,6 +296,25 @@ function RegisterForm({ onSwitch }) {
         {submitting ? <Spinner label={t('auth.creating')} /> : t('auth.createAccount')}
       </button>
     </form>
+  );
+}
+
+/** Flattens the API's {field: [msg]} validation payload onto the form. */
+function mapErrors(err, t) {
+  if (!err.errors) return { _: err.message || t('auth.genericError') };
+  const out = Object.fromEntries(
+    Object.entries(err.errors).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]),
+  );
+  // The API calls it password_confirmation; the form field is "confirm".
+  if (out.password_confirmation) out.confirm = out.password_confirmation;
+  return out;
+}
+
+function FormError({ message }) {
+  return (
+    <div className="bg-[#fde8e8] border border-[#f5c2c2] text-[#D64545] rounded-brand-sm px-4 py-3 text-sm font-medium">
+      {message}
+    </div>
   );
 }
 
@@ -333,37 +352,9 @@ function Spinner({ label }) {
   );
 }
 
-function Divider() {
-  const { t } = useLang();
-  return (
-    <div className="flex items-center gap-3 text-xs text-brand-ink-soft my-2">
-      <span className="flex-1 h-px bg-brand-line" />
-      {t('auth.orLoginWith')}
-      <span className="flex-1 h-px bg-brand-line" />
-    </div>
-  );
-}
 
-function SocialButtons() {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      <SocialBtn icon={<GoogleIcon />} label="Google" />
-      <SocialBtn icon={<FacebookIcon />} label="Facebook" />
-    </div>
-  );
-}
 
-function SocialBtn({ icon, label }) {
-  return (
-    <button
-      type="button"
-      className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-brand-sm border border-brand-line bg-white hover:border-brand-pink/40 hover:bg-brand-pink-softer transition-all text-sm font-medium text-brand-ink"
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
+
 
 function PasswordStrength({ password }) {
   const { t } = useLang();
@@ -417,21 +408,6 @@ function EyeOffIcon() {
   );
 }
 
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-  );
-}
 
-function FacebookIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-    </svg>
-  );
-}
+
+

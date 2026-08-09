@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
 
 export default function Faq() {
   const { t } = useLang();
-  const categories = t('faq.categories');
+  const { c } = useContent();
+  const categories = c('faq.categories', []);
 
   const [activeCat, setActiveCat] = useState('shipping');
   const [openIdx, setOpenIdx] = useState(null);
@@ -24,11 +26,11 @@ export default function Faq() {
         <span className="absolute bottom-6 right-16 text-3xl opacity-20 select-none">🌸</span>
         <div className="akwab-container relative z-10">
           <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-            {t('faq.kicker')}
+            {c('faq.kicker')}
           </p>
-          <h1 className="text-[clamp(32px,4.5vw,56px)] mb-4">{t('faq.title')}</h1>
+          <h1 className="text-[clamp(32px,4.5vw,56px)] mb-4">{c('faq.title')}</h1>
           <p className="text-brand-ink-soft text-[17px] max-w-xl mx-auto">
-            {t('faq.desc')}
+            {c('faq.desc')}
           </p>
         </div>
       </section>
@@ -94,9 +96,9 @@ export default function Faq() {
             style={{ background: 'linear-gradient(135deg,#fce8f0 0%,#fef9e7 100%)' }}
           >
             <div className="text-4xl mb-4">💬</div>
-            <h3 className="text-2xl mb-3 font-amiri">{t('faq.stillNeedHelp')}</h3>
+            <h3 className="text-2xl mb-3 font-amiri">{c('faq.stillNeedHelp')}</h3>
             <p className="text-brand-ink-soft text-sm mb-6 max-w-sm mx-auto">
-              {t('faq.stillDesc')}
+              {c('faq.stillDesc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
@@ -105,10 +107,10 @@ export default function Faq() {
                 rel="noopener noreferrer"
                 className="btn btn-whats justify-center"
               >
-                {t('faq.whatsapp')}
+                {c('faq.whatsapp')}
               </a>
               <Link to="/contact" className="btn btn-outline justify-center">
-                {t('faq.messageUs')}
+                {c('faq.messageUs')}
               </Link>
             </div>
           </div>

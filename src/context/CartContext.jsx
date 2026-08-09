@@ -1,90 +1,61 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
-
-const STORAGE_KEY = 'akwab.cart.v1';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import * as cartApi from '../services/cartService.js';
+import { useAuth } from './AuthContext.jsx';
 
 const CartContext = createContext(null);
 
-const initialState = { items: [] };
+const EMPTY = {
+  items: [], discounts: [], address: null,
+  subtotal: 0, discount: 0, shipping: 0, total: 0, count: 0,
+};
 
-function reducer(state, action) {
-  switch (action.type) {
-    case 'hydrate':
-      return action.payload || initialState;
-
-    case 'add': {
-      const { product, qty = 1 } = action;
-      const idx = state.items.findIndex((i) => i.id === product.id);
-      if (idx >= 0) {
-        const items = [...state.items];
-        items[idx] = { ...items[idx], qty: items[idx].qty + qty };
-        return { ...state, items };
-      }
-      return {
-        ...state,
-        items: [
-          ...state.items,
-          {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            img: product.img,
-            qty,
-          },
-        ],
-      };
-    }
-
-    case 'remove':
-      return { ...state, items: state.items.filter((i) => i.id !== action.id) };
-
-    case 'setQty': {
-      const { id, qty } = action;
-      if (qty <= 0) {
-        return { ...state, items: state.items.filter((i) => i.id !== id) };
-      }
-      return {
-        ...state,
-        items: state.items.map((i) => (i.id === id ? { ...i, qty } : i)),
-      };
-    }
-
-    case 'clear':
-      return initialState;
-
-    default:
-      return state;
-  }
-}
-
+/**
+ * The cart lives on the server — the same carts/cart_items the dashboard reads,
+ * priced by the same discount and shipping engine. Every mutation returns the
+ * recalculated cart, so nothing is totalled client-side.
+ */
 export function CartProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [cart, setCart] = useState(EMPTY);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user, loading: authLoading } = useAuth();
 
-  // Hydrate from localStorage once on mount
-  useEffect(() => {
+  const refresh = useCallback(async () => {
+    setLoading(true);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) dispatch({ type: 'hydrate', payload: JSON.parse(raw) });
-    } catch {}
+      setCart(await cartApi.getCart());
+      setError(null);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Persist on every change
+  // Reload once auth settles, and again whenever the account changes — signing
+  // in merges the guest cart server-side, so the totals move.
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {}
-  }, [state]);
+    if (authLoading) return;
+    refresh();
+  }, [authLoading, user?.id, refresh]);
 
-  const value = useMemo(() => {
-    const count = state.items.reduce((n, i) => n + i.qty, 0);
-    return {
-      items: state.items,
-      count,
-      add: (product, qty) => dispatch({ type: 'add', product, qty }),
-      remove: (id) => dispatch({ type: 'remove', id }),
-      setQty: (id, qty) => dispatch({ type: 'setQty', id, qty }),
-      clear: () => dispatch({ type: 'clear' }),
-    };
-  }, [state]);
+  const run = useCallback(async (action) => {
+    const next = await action();
+    setCart(next);
+    return next;
+  }, []);
+
+  const value = useMemo(() => ({
+    ...cart,
+    loading,
+    error,
+    refresh,
+    add: (productId, qty = 1) => run(() => cartApi.addItem(productId, qty)),
+    setQty: (productId, qty) => run(() => cartApi.setQty(productId, qty)),
+    remove: (productId) => run(() => cartApi.removeItem(productId)),
+    clear: () => run(() => cartApi.clearCart()),
+    applyCoupon: (code) => run(() => cartApi.applyCoupon(code)),
+  }), [cart, loading, error, refresh, run]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

@@ -8,7 +8,8 @@ export default function Shop() {
   const { t } = useLang();
   const [cat, setCat] = useState('all');
   const cats = useCategories();
-  const { data, loading } = useProducts(cat);
+  // 60 is the API's per_page ceiling — the shop shows everything on one page.
+  const { data, loading, error } = useProducts(cat, { per_page: 60 });
   const tabs = [{ slug: 'all', name: t('shop.all') }, ...cats];
 
   return (
@@ -36,13 +37,23 @@ export default function Shop() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {loading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-brand h-[460px] animate-pulse" />
-              ))
-            : data.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
+        {error && (
+          <p className="text-center text-[#D64545] py-10">{error.message}</p>
+        )}
+
+        {!error && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-brand h-[420px] animate-pulse" />
+                ))
+              : data.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        )}
+
+        {!loading && !error && data.length === 0 && (
+          <p className="text-center text-brand-ink-soft py-16">{t('shop.empty')}</p>
+        )}
       </div>
     </section>
   );

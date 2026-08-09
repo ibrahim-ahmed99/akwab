@@ -1,4 +1,5 @@
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
 
 const ICONS = [
   <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -23,7 +24,8 @@ const ICONS = [
 
 export default function Stats() {
   const { t } = useLang();
-  const stats = t('stats');
+  const { c } = useContent();
+  const stats = c('stats.items', []);
 
   return (
     <section

@@ -1,32 +1,37 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import * as productsService from '../../services/productsService.js';
+import * as catalog from '../../services/catalogService.js';
+import { useFeatured } from '../../hooks/useProducts.js';
 import ProductCard from '../../components/ProductCard.jsx';
-import { toArabicDigits } from '../../utils/arabic.js';
+import { digits } from '../../utils/arabic.js';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useDebounced } from '../../hooks/useDebounced.js';
 
 export default function Search() {
   const { t, lang } = useLang();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [allProducts, setAllProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  const debounced = useDebounced(query.trim());
+
+  // Searching happens on the server — the whole catalogue is no longer pulled
+  // down just to filter it in the browser.
   useEffect(() => {
-    productsService.getProducts('all').then(p => {
-      setAllProducts(p);
-      setLoading(false);
-    });
-  }, []);
+    if (!debounced) { setResults([]); setLoading(false); return; }
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return allProducts.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      (p.sub && p.sub.toLowerCase().includes(q))
-    );
-  }, [query, allProducts]);
+    let cancelled = false;
+    setLoading(true);
+
+    catalog
+      .getProducts({ search: debounced, per_page: 60 })
+      .then(({ items }) => { if (!cancelled) setResults(items); })
+      .catch(() => { if (!cancelled) setResults([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [debounced]);
 
   const handleChange = (val) => {
     setQuery(val);
@@ -34,7 +39,6 @@ export default function Search() {
     else setSearchParams({}, { replace: true });
   };
 
-  const fmt = (n) => lang === 'ar' ? toArabicDigits(n) : String(n);
   const quickTags = t('search.quickTags');
 
   return (
@@ -92,20 +96,21 @@ export default function Search() {
         </div>
 
         {/* Results area */}
-        {loading ? (
+        {query.trim() === '' ? (
+          <PopularSection />
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-brand h-[460px] animate-pulse" />
+              <div key={i} className="bg-white rounded-brand h-[420px] animate-pulse" />
             ))}
           </div>
-        ) : query.trim() === '' ? (
-          <PopularSection products={allProducts} />
         ) : results.length === 0 ? (
           <EmptyState query={query} />
         ) : (
           <>
             <p className="text-brand-ink-soft mb-6 text-center">
-              <span className="font-bold text-brand-ink">{fmt(results.length)}</span> {t('search.resultsFor')} &quot;{query}&quot;
+              <span className="font-bold text-brand-ink">{digits(results.length, lang)}</span>{' '}
+              {t('search.resultsFor')} &quot;{query}&quot;
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {results.map(p => <ProductCard key={p.id} product={p} />)}
@@ -118,17 +123,29 @@ export default function Search() {
   );
 }
 
-function PopularSection({ products }) {
+function PopularSection() {
   const { t } = useLang();
-  const popular = products.filter(p => p.badge?.kind === 'hot').slice(0, 8);
-  if (!popular.length) return null;
+  const { data, loading } = useFeatured(8);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-brand h-[420px] animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!data.length) return null;
+
   return (
     <div>
       <h2 className="text-2xl text-center mb-6 text-brand-ink-soft font-cairo font-medium">
         {t('search.popular')}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {popular.map(p => <ProductCard key={p.id} product={p} />)}
+        {data.map(p => <ProductCard key={p.id} product={p} />)}
       </div>
     </div>
   );

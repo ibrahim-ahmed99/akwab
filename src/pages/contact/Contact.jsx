@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { SectionHead } from '../../components/SectionHead.jsx';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
+import { sendMessage } from '../../services/contentService.js';
 
 const ITEM_ICONS = [
   <PhoneIcon />,
@@ -11,8 +13,9 @@ const ITEM_ICONS = [
 
 export default function Contact() {
   const { t } = useLang();
-  const contactItems = t('contact.items');
-  const subjects = t('contact.subjects');
+  const { c } = useContent();
+  const contactItems = c('contact.items', []);
+  const subjects = c('contact.subjects', []);
 
   const [form, setFormState] = useState({ name: '', contact: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
@@ -26,19 +29,36 @@ export default function Contact() {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = t('contact.errors.name');
-    if (!form.contact.trim()) e.contact = t('contact.errors.contact');
-    if (!form.subject) e.subject = t('contact.errors.subject');
-    if (form.message.trim().length < 10) e.message = t('contact.errors.message');
+    if (!form.name.trim()) e.name = c('contact.errors.name');
+    if (!form.contact.trim()) e.contact = c('contact.errors.contact');
+    if (!form.subject) e.subject = c('contact.errors.subject');
+    if (form.message.trim().length < 10) e.message = c('contact.errors.message');
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSent(true); }, 1200);
+    setErrors({});
+    try {
+      // Lands in the dashboard's Messages screen and bumps its sidebar badge.
+      await sendMessage({
+        name: form.name.trim(),
+        contact: form.contact.trim(),
+        subject: form.subject,
+        message: form.message.trim(),
+      });
+      setSent(true);
+    } catch (err) {
+      setErrors(err.errors
+        ? Object.fromEntries(Object.entries(err.errors).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]))
+        : { _: err.message });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -52,11 +72,11 @@ export default function Contact() {
         <span className="absolute bottom-8 left-16 text-3xl opacity-20 select-none">✿</span>
         <div className="akwab-container relative z-10">
           <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-            {t('contact.kicker')}
+            {c('contact.kicker')}
           </p>
-          <h1 className="text-[clamp(32px,4.5vw,56px)] mb-4">{t('contact.title')}</h1>
+          <h1 className="text-[clamp(32px,4.5vw,56px)] mb-4">{c('contact.title')}</h1>
           <p className="text-brand-ink-soft text-[17px] max-w-xl mx-auto">
-            {t('contact.desc')}
+            {c('contact.desc')}
           </p>
         </div>
       </section>
@@ -75,38 +95,38 @@ export default function Contact() {
                       <path d="m5 12 5 5 9-11" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl mb-3 font-amiri">{t('contact.sent')}</h3>
-                  <p className="text-brand-ink-soft text-sm mb-6">{t('contact.sentDesc')}</p>
+                  <h3 className="text-2xl mb-3 font-amiri">{c('contact.sent')}</h3>
+                  <p className="text-brand-ink-soft text-sm mb-6">{c('contact.sentDesc')}</p>
                   <button onClick={() => { setSent(false); setFormState({ name: '', contact: '', subject: '', message: '' }); }}
-                    className="btn btn-outline">{t('contact.sendAnother')}</button>
+                    className="btn btn-outline">{c('contact.sendAnother')}</button>
                 </div>
               ) : (
                 <>
                   <h2 className="text-2xl mb-6 flex items-center gap-2.5">
                     <span className="text-brand-pink"><MessageIcon /></span>
-                    {t('contact.formTitle')}
+                    {c('contact.formTitle')}
                   </h2>
                   <form onSubmit={handleSubmit} noValidate className="space-y-5">
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <Field label={t('contact.fullName')} error={errors.name} required>
+                      <Field label={c('contact.fullName')} error={errors.name} required>
                         <input type="text" value={form.name} onChange={e => set('name', e.target.value)}
-                          placeholder={t('contact.namePlaceholder')} className={inputCls(errors.name)} />
+                          placeholder={c('contact.namePlaceholder')} className={inputCls(errors.name)} />
                       </Field>
-                      <Field label={t('contact.phoneOrEmail')} error={errors.contact} required>
+                      <Field label={c('contact.phoneOrEmail')} error={errors.contact} required>
                         <input type="text" value={form.contact} onChange={e => set('contact', e.target.value)}
-                          placeholder={t('contact.phonePlaceholder')} className={inputCls(errors.contact)} dir="ltr" />
+                          placeholder={c('contact.phonePlaceholder')} className={inputCls(errors.contact)} dir="ltr" />
                       </Field>
                     </div>
-                    <Field label={t('contact.subject')} error={errors.subject} required>
+                    <Field label={c('contact.subject')} error={errors.subject} required>
                       <select value={form.subject} onChange={e => set('subject', e.target.value)}
                         className={inputCls(errors.subject)}>
-                        <option value="">{t('contact.chooseSubject')}</option>
+                        <option value="">{c('contact.chooseSubject')}</option>
                         {subjects.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </Field>
-                    <Field label={t('contact.messageLbl')} error={errors.message} required>
+                    <Field label={c('contact.messageLbl')} error={errors.message} required>
                       <textarea value={form.message} onChange={e => set('message', e.target.value)}
-                        rows={5} placeholder={t('contact.writePlaceholder')}
+                        rows={5} placeholder={c('contact.writePlaceholder')}
                         className={`${inputCls(errors.message)} resize-none`} />
                     </Field>
                     <button type="submit" disabled={submitting}
@@ -116,9 +136,9 @@ export default function Contact() {
                           <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                           </svg>
-                          {t('contact.sending')}
+                          {c('contact.sending')}
                         </span>
-                      ) : t('contact.sendMessage')}
+                      ) : c('contact.sendMessage')}
                     </button>
                   </form>
                 </>
@@ -148,7 +168,7 @@ export default function Contact() {
 
               {/* Social */}
               <div className="bg-white rounded-brand p-5 shadow-brand-sm">
-                <div className="text-sm font-semibold mb-3">{t('contact.followUs')}</div>
+                <div className="text-sm font-semibold mb-3">{c('contact.followUs')}</div>
                 <div className="flex gap-3">
                   <a href="https://www.instagram.com/akwab_official_/" target="_blank" rel="noopener noreferrer"
                     aria-label="إنستغرام"

@@ -8,15 +8,15 @@ const PAGE_SIZE = 4;
 
 export default function ProductsSection() {
   const { t } = useLang();
-  const [cat,     setCat]     = useState('all');
+  const [cat, setCat] = useState('all');
   const [visible, setVisible] = useState(PAGE_SIZE);
-  const cats                  = useCategories();
-  const { data, loading }     = useProducts(cat);
+  const cats = useCategories();
+  const { data, loading } = useProducts(cat, { per_page: 60 });
 
   useEffect(() => { setVisible(PAGE_SIZE); }, [cat]);
 
-  const tabs    = [{ slug: 'all', name: t('products.all') }, ...cats];
-  const shown   = data.slice(0, visible);
+  const tabs = [{ slug: 'all', name: t('products.all') }, ...cats];
+  const shown = data.slice(0, visible);
   const hasMore = visible < data.length;
 
   return (
@@ -50,7 +50,7 @@ export default function ProductsSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-brand h-[460px] animate-pulse" />
+                <div key={i} className="bg-white rounded-brand h-[420px] animate-pulse" />
               ))
             : shown.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>

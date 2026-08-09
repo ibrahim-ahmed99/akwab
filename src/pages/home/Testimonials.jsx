@@ -1,14 +1,18 @@
 import { useState, useRef } from 'react';
 import { SectionHead } from '../../components/SectionHead.jsx';
-import REVIEWS from '../../services/static/reviews.json';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
 
 export default function Testimonials() {
   const { t } = useLang();
+  const { c } = useContent();
   const [lightbox, setLightbox] = useState(null);
   const trackRef = useRef(null);
 
-  if (!REVIEWS.length) return null;
+  // The review wall is content now, served with the rest of the page copy.
+  const reviews = c('testimonials.images', []);
+
+  if (!reviews.length) return null;
 
   function scroll(dir) {
     const track = trackRef.current;
@@ -23,13 +27,13 @@ export default function Testimonials() {
       <div className="akwab-container">
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
           <SectionHead
-            title={t('testimonials.title')}
-            desc={t('testimonials.desc')}
+            title={c('testimonials.title')}
+            desc={c('testimonials.desc')}
             className="mb-0"
           />
           <div className="flex gap-2 flex-shrink-0" dir="ltr">
-            <ArrowBtn label="←" onClick={() => scroll(-1)} aria={t('testimonials.scrollLeft')} />
-            <ArrowBtn label="→" onClick={() => scroll(1)}  aria={t('testimonials.scrollRight')} />
+            <ArrowBtn label="←" onClick={() => scroll(-1)} aria={c('testimonials.scrollLeft')} />
+            <ArrowBtn label="→" onClick={() => scroll(1)}  aria={c('testimonials.scrollRight')} />
           </div>
         </div>
 
@@ -39,17 +43,17 @@ export default function Testimonials() {
           className="flex gap-4 overflow-x-auto pb-2 scroll-smooth snap-x snap-mandatory"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {REVIEWS.map((r) => (
+          {reviews.map((img, i) => (
             <div
-              key={r.id}
+              key={img || i}
               data-card
               className="reveal flex-shrink-0 cursor-zoom-in overflow-hidden rounded-brand border border-brand-line snap-start transition-all duration-300 hover:-translate-y-1.5 hover:shadow-brand-md"
               style={{ width: 'clamp(220px, 28vw, 320px)' }}
-              onClick={() => setLightbox(r.img)}
+              onClick={() => setLightbox(img)}
             >
               <img
-                src={r.img}
-                alt={t('testimonials.reviewAlt')}
+                src={img}
+                alt={c('testimonials.reviewAlt')}
                 className="w-full h-auto block"
                 loading="lazy"
               />
@@ -66,7 +70,7 @@ export default function Testimonials() {
         >
           <img
             src={lightbox}
-            alt={t('testimonials.reviewAlt')}
+            alt={c('testimonials.reviewAlt')}
             className="max-h-[90vh] max-w-[90vw] rounded-brand shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />

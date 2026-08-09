@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toArabicDigits } from '../../utils/arabic.js';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
 
 const MugHeart = () => (
   <svg viewBox="0 0 200 160" className="w-10 h-10">
@@ -65,6 +66,7 @@ const SALE_CARDS = [
 
 export default function Sale() {
   const { t, lang } = useLang();
+  const { c } = useContent();
   const [time, setTime] = useState({ d: 0, h: 0, m: 0, s: 0 });
 
   useEffect(() => {
@@ -85,10 +87,10 @@ export default function Sale() {
   const fmt = (n) => lang === 'ar' ? toArabicDigits(n) : String(n).padStart(2, '0');
 
   const units = [
-    { n: time.d, l: t('sale.days') },
-    { n: time.h, l: t('sale.hours') },
-    { n: time.m, l: t('sale.minutes') },
-    { n: time.s, l: t('sale.seconds') },
+    { n: time.d, l: c('sale.days') },
+    { n: time.h, l: c('sale.hours') },
+    { n: time.m, l: c('sale.minutes') },
+    { n: time.s, l: c('sale.seconds') },
   ];
 
   return (
@@ -106,14 +108,14 @@ export default function Sale() {
           <div>
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-sm font-semibold mb-5"
               style={{ background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(10px)' }}>
-              {t('sale.badge')}
+              {c('sale.badge')}
             </div>
             <h2 className="text-[clamp(32px,4vw,52px)] text-white mb-4">
-              {t('sale.title')}<br />
-              <span className="text-brand-gold italic">{t('sale.ends')}</span>
+              {c('sale.title')}<br />
+              <span className="text-brand-gold italic">{c('sale.ends')}</span>
             </h2>
             <p className="opacity-[.92] text-[17px] mb-7 max-w-[440px]">
-              {t('sale.desc')}
+              {c('sale.desc')}
             </p>
 
             <div className="flex gap-3 flex-wrap mb-8">
@@ -129,7 +131,7 @@ export default function Sale() {
             </div>
 
             <Link to="/shop?filter=sale" className="btn btn-gold">
-              {t('sale.browseOffers')}
+              {c('sale.browseOffers')}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-[18px] h-[18px]">
                 <path d="M19 12H5M11 18l-6-6 6-6" />
               </svg>
@@ -141,8 +143,8 @@ export default function Sale() {
               className="spin-fwd absolute -top-[30px] -left-[20px] z-[3] w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center"
               style={{ background: '#C8A84B', color: '#3a2f10', boxShadow: '0 14px 30px rgba(0,0,0,.25)', border: '3px dashed rgba(255,255,255,.5)' }}
             >
-              <span className="spin-back font-amiri text-[44px] font-bold leading-none">{t('sale.discountNum')}</span>
-              <span className="spin-back text-[11px] font-bold tracking-[.12em] mt-1">{t('sale.discountLbl')}</span>
+              <span className="spin-back font-amiri text-[44px] font-bold leading-none">{c('sale.discountNum')}</span>
+              <span className="spin-back text-[11px] font-bold tracking-[.12em] mt-1">{c('sale.discountLbl')}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3.5">

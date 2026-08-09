@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext.jsx';
+import { useContent } from '../context/ContentContext.jsx';
 
 /* ── Social icons ── */
 const InstagramIcon = () => (
@@ -43,14 +44,14 @@ const SOCIALS = [
 
 export default function Footer() {
   const { t } = useLang();
+  const { c } = useContent();
 
-  const shopLinks = [{ label: t('footer.allProducts'), to: '/shop' }];
+  const shopLinks = [{ label: c('footer.allProducts'), to: '/shop' }];
+  // Shipping / return-policy / track-order pages don't exist yet, so only the
+  // links that lead somewhere real are shown.
   const helpLinks = [
-    { label: t('footer.faq'),          to: '/faq' },
-    { label: t('footer.shipping'),     to: '/faq' },
-    { label: t('footer.returnPolicy'), to: '/faq' },
-    { label: t('footer.contactUs'),    to: '/contact' },
-    { label: t('footer.trackOrder'),   to: '/profile' },
+    { label: c('footer.faq'),       to: '/faq' },
+    { label: c('footer.contactUs'), to: '/contact' },
   ];
 
   return (
@@ -63,7 +64,7 @@ export default function Footer() {
         style={{ background: 'linear-gradient(90deg, #E0478A, #C8A84B, #89B8D8, #E0478A)' }} />
 
       <div className="akwab-container">
-        <div className="grid md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-12 mb-12">
+        <div className="grid md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-12 mb-12 items-start">
 
           {/* Brand column */}
           <div>
@@ -75,7 +76,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-sm leading-[1.8] max-w-[320px]" style={{ color: '#B5A3BA' }}>
-              {t('footer.desc')}
+              {c('footer.desc')}
             </p>
             <div className="flex gap-2.5 mt-5">
               {SOCIALS.map(({ labelKey, Icon, href }) => (
@@ -95,14 +96,14 @@ export default function Footer() {
           </div>
 
           {/* Shop column */}
-          <FooterCol title={t('footer.shop')} links={shopLinks} />
+          <FooterCol title={c('footer.shop')} links={shopLinks} />
 
           {/* Help column */}
-          <FooterCol title={t('footer.help')} links={helpLinks} />
+          <FooterCol title={c('footer.help')} links={helpLinks} />
 
           {/* Contact column */}
           <div>
-            <FooterHeading>{t('footer.contactHeading')}</FooterHeading>
+            <FooterHeading>{c('footer.contactHeading')}</FooterHeading>
             <ul className="flex flex-col gap-3 text-sm" style={{ color: '#B5A3BA' }}>
               <li>
                 <a href="mailto:hello@akwab.shop" className="flex items-start gap-2.5 hover:text-brand-pink transition-colors">
@@ -116,16 +117,16 @@ export default function Footer() {
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
-                <LocationIcon /> {t('footer.city')}
+                <LocationIcon /> {c('footer.city')}
               </li>
             </ul>
 
             <div className="mt-6">
-              <FooterHeading>{t('footer.quickLinks')}</FooterHeading>
+              <FooterHeading>{c('footer.quickLinks')}</FooterHeading>
               <ul className="flex flex-col gap-2.5 text-sm" style={{ color: '#B5A3BA' }}>
-                <li><Link to="/about" className="hover:text-brand-pink transition-colors">{t('footer.aboutUs')}</Link></li>
-                <li><Link to="/auth" className="hover:text-brand-pink transition-colors">{t('footer.loginLink')}</Link></li>
-                <li><Link to="/wishlist" className="hover:text-brand-pink transition-colors">{t('footer.wishlistLink')}</Link></li>
+                <li><Link to="/about" className="hover:text-brand-pink transition-colors">{c('footer.aboutUs')}</Link></li>
+                <li><Link to="/auth" className="hover:text-brand-pink transition-colors">{c('footer.loginLink')}</Link></li>
+                <li><Link to="/wishlist" className="hover:text-brand-pink transition-colors">{c('footer.wishlistLink')}</Link></li>
               </ul>
             </div>
           </div>
@@ -134,9 +135,9 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-wrap justify-between items-center gap-4 pt-6 border-t text-xs"
           style={{ borderColor: 'rgba(255,255,255,.08)', color: '#8E7D93' }}>
-          <span>{t('footer.copyright')}</span>
+          <span>{c('footer.copyright')}</span>
           <div className="flex gap-2 flex-wrap items-center">
-            {t('footer.payments').map((p) => (
+            {c('footer.payments', []).map((p) => (
               <span key={p} className="px-3 py-1 rounded-lg text-[11px] font-semibold"
                 style={{ background: 'rgba(255,255,255,.06)', color: '#B5A3BA' }}>
                 {p}

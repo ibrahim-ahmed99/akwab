@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
 
 export default function Hero() {
   const { t } = useLang();
+  const { c } = useContent();
 
   return (
     <section className="relative py-12 md:py-20 overflow-hidden">
@@ -16,17 +18,17 @@ export default function Hero() {
       <div className="akwab-container grid md:grid-cols-[1.1fr_1fr] gap-12 md:gap-16 items-center relative">
         <div className="reveal">
           <h1 className="text-[clamp(36px,5.5vw,68px)] font-bold leading-[1.15] my-5">
-            {t('hero.line1')}
+            {c('hero.line1')}
             <br />
-            <span className="text-brand-pink italic relative inline-block">{t('hero.line2')}</span>{' '}
-            {t('hero.line3')}
+            <span className="text-brand-pink italic relative inline-block">{c('hero.line2')}</span>{' '}
+            {c('hero.line3')}
           </h1>
           <p className="text-[clamp(16px,1.4vw,19px)] text-brand-ink-soft max-w-[540px] mb-8">
-            {t('hero.desc')}
+            {c('hero.desc')}
           </p>
           <div className="flex flex-wrap gap-3">
             <Link to="/shop" className="btn btn-primary">
-              {t('hero.shopNow')}
+              {c('hero.shopNow')}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-[18px] h-[18px]">
                 <path d="M19 12H5M11 18l-6-6 6-6" />
               </svg>

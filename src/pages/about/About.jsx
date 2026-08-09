@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { SectionHead } from '../../components/SectionHead.jsx';
 import { useLang } from '../../context/LanguageContext.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
 
 const VALUE_ICONS = [
   <HandIcon />,
@@ -11,8 +12,9 @@ const VALUE_ICONS = [
 
 export default function About() {
   const { t } = useLang();
-  const values = t('about.values');
-  const stats = t('about.stats');
+  const { c } = useContent();
+  const values = c('about.values', []);
+  const stats = c('about.stats', []);
 
   return (
     <>
@@ -27,10 +29,10 @@ export default function About() {
 
         <div className="akwab-container max-w-3xl text-center relative z-10">
           <h1 className="text-[clamp(36px,5vw,64px)] mb-6 leading-tight">
-            {t('about.heroTitle')}
+            {c('about.heroTitle')}
           </h1>
           <p className="text-brand-ink-soft text-[18px] leading-relaxed max-w-2xl mx-auto">
-            {t('about.heroDesc')}
+            {c('about.heroDesc')}
           </p>
         </div>
       </section>
@@ -40,18 +42,18 @@ export default function About() {
         <div className="akwab-container max-w-3xl text-center">
           <div className="reveal">
             <p className="text-xs uppercase tracking-[0.1em] text-brand-pink font-semibold mb-3 font-cairo">
-              {t('about.storyKicker')}
+              {c('about.storyKicker')}
             </p>
             <h2 className="text-[clamp(28px,3.5vw,44px)] mb-6">
-              {t('about.storyTitle')}
+              {c('about.storyTitle')}
             </h2>
             <p className="text-brand-ink-soft leading-relaxed mb-4 text-[17px]">
-              {t('about.storyP1')}
+              {c('about.storyP1')}
             </p>
             <p className="text-brand-ink-soft leading-relaxed mb-8 text-[17px]">
-              {t('about.storyP2')}
+              {c('about.storyP2')}
             </p>
-            <Link to="/shop" className="btn btn-primary">{t('about.shopWithUs')}</Link>
+            <Link to="/shop" className="btn btn-primary">{c('about.shopWithUs')}</Link>
           </div>
         </div>
       </section>
@@ -60,9 +62,9 @@ export default function About() {
       <section className="py-20" style={{ background: 'linear-gradient(180deg,#fef9e7 0%,#fefcf0 100%)' }}>
         <div className="akwab-container">
           <SectionHead
-            kicker={t('about.valuesKicker')}
-            title={t('about.valuesTitle')}
-            desc={t('about.valuesDesc')}
+            kicker={c('about.valuesKicker')}
+            title={c('about.valuesTitle')}
+            desc={c('about.valuesDesc')}
           />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((v, i) => (
@@ -99,13 +101,13 @@ export default function About() {
       <section className="py-20">
         <div className="akwab-container max-w-2xl text-center">
           <SectionHead
-            kicker={t('about.ctaKicker')}
-            title={t('about.ctaTitle')}
-            desc={t('about.ctaDesc')}
+            kicker={c('about.ctaKicker')}
+            title={c('about.ctaTitle')}
+            desc={c('about.ctaDesc')}
           />
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/shop" className="btn btn-primary justify-center">{t('about.browseShop')}</Link>
-            <Link to="/contact" className="btn btn-outline justify-center">{t('about.contactUs')}</Link>
+            <Link to="/shop" className="btn btn-primary justify-center">{c('about.browseShop')}</Link>
+            <Link to="/contact" className="btn btn-outline justify-center">{c('about.contactUs')}</Link>
           </div>
         </div>
       </section>

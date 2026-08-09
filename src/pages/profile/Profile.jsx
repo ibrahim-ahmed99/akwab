@@ -1,70 +1,52 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useWishlist } from '../../context/WishlistContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
-import { toArabicDigits, starsStr } from '../../utils/arabic.js';
+import { formatPrice, digits } from '../../utils/arabic.js';
+import { productPath } from '../../utils/routes.js';
 import { useLang } from '../../context/LanguageContext.jsx';
-
-const MOCK_USER = {
-  name: 'نور أحمد',
-  phone: '01012345678',
-  email: 'nour@example.com',
-  joinDate: 'يناير ٢٠٢٦',
-};
-
-const MOCK_ORDERS = [
-  {
-    id: '١٢٣٤٥٦',
-    date: '٨ مايو ٢٠٢٦',
-    status: 'تم التسليم',
-    kind: 'delivered',
-    items: [
-      { name: 'كوب اليقطين الكريمي', qty: 1, price: '٤٢٠ ج.م' },
-      { name: 'كوب الهالوين المرح', qty: 1, price: '٤٨٠ ج.م' },
-    ],
-    total: '٩٦٠ ج.م',
-  },
-  {
-    id: '٧٨٩٠١٢',
-    date: '٢ مايو ٢٠٢٦',
-    status: 'قيد الشحن',
-    kind: 'shipping',
-    items: [
-      { name: 'كوب الأقحوان الوردي', qty: 2, price: '٣٩٠ ج.م' },
-    ],
-    total: '٨٤٠ ج.م',
-  },
-  {
-    id: '٣٤٥٦٧٨',
-    date: '١٨ أبريل ٢٠٢٦',
-    status: 'تم التسليم',
-    kind: 'delivered',
-    items: [
-      { name: 'كوب تكفيني أنت وطناً لي', qty: 1, price: '٦٥٠ ج.م' },
-    ],
-    total: '٧١٠ ج.م',
-  },
-];
+import * as orderApi from '../../services/orderService.js';
 
 const STATUS_STYLE = {
   delivered: 'bg-[#e6f9ef] text-[#1a7a40]',
-  shipping:  'bg-brand-blue-soft text-[#4a7fa0]',
-  pending:   'bg-[#faf5e4] text-brand-gold',
+  shipped: 'bg-brand-blue-soft text-[#4a7fa0]',
+  processing: 'bg-brand-blue-soft text-[#4a7fa0]',
+  confirmed: 'bg-brand-blue-soft text-[#4a7fa0]',
+  pending: 'bg-[#faf5e4] text-brand-gold',
   cancelled: 'bg-[#fde8e8] text-[#D64545]',
 };
 
 export default function Profile() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [tab, setTab] = useState('orders');
-  const fmt = (n) => lang === 'ar' ? toArabicDigits(n) : String(n);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setOrdersLoading(false); return; }
+
+    let cancelled = false;
+    setOrdersLoading(true);
+
+    orderApi.getOrders({ per_page: 20 })
+      .then(({ items }) => { if (!cancelled) setOrders(items); })
+      .catch(() => { if (!cancelled) setOrders([]); })
+      .finally(() => { if (!cancelled) setOrdersLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const TABS = [
-    { id: 'orders',   label: t('profile.ordersTab'),   icon: <BoxIcon /> },
-    { id: 'wishlist', label: t('profile.wishlistTab'),  icon: <HeartIcon /> },
-    { id: 'settings', label: t('profile.settingsTab'),  icon: <UserIcon /> },
+    { id: 'orders', label: t('profile.ordersTab'), icon: <BoxIcon /> },
+    { id: 'wishlist', label: t('profile.wishlistTab'), icon: <HeartIcon /> },
+    { id: 'settings', label: t('profile.settingsTab'), icon: <UserIcon /> },
   ];
+
+  if (authLoading) {
+    return <div className="akwab-container py-24"><div className="h-40 bg-white rounded-brand animate-pulse" /></div>;
+  }
 
   if (!user) {
     return (
@@ -80,6 +62,8 @@ export default function Profile() {
     );
   }
 
+  const delivered = orders.filter((o) => o.status === 'delivered').length;
+
   return (
     <section className="py-12">
       <div className="akwab-container max-w-4xl">
@@ -87,16 +71,18 @@ export default function Profile() {
         {/* Profile header */}
         <div className="bg-white rounded-brand shadow-brand-sm p-6 mb-8 flex items-center gap-5 flex-wrap">
           <div className="w-16 h-16 rounded-full bg-brand-pink text-white flex items-center justify-center text-2xl font-amiri font-bold shrink-0">
-            {(user.name || 'م').charAt(0)}
+            {user.avatar || (user.name || 'م').charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl mb-0.5">{user.name}</h1>
-            <p className="text-sm text-brand-ink-soft">{t('profile.memberSince')} {MOCK_USER.joinDate}</p>
+            <p className="text-sm text-brand-ink-soft">
+              {t('profile.memberSince')} {formatJoined(user.joined_at, lang)}
+            </p>
           </div>
           <div className="flex gap-3 text-center">
-            <Stat num={fmt(MOCK_ORDERS.length)} label={t('profile.ordersLabel')} />
+            <Stat num={digits(orders.length, lang)} label={t('profile.ordersLabel')} />
             <div className="w-px bg-brand-line" />
-            <Stat num={fmt(MOCK_ORDERS.filter(o => o.kind === 'delivered').length)} label={t('profile.deliveredLabel')} />
+            <Stat num={digits(delivered, lang)} label={t('profile.deliveredLabel')} />
           </div>
         </div>
 
@@ -118,8 +104,7 @@ export default function Profile() {
           ))}
         </div>
 
-        {/* Tab content */}
-        {tab === 'orders'   && <OrdersTab />}
+        {tab === 'orders' && <OrdersTab orders={orders} loading={ordersLoading} />}
         {tab === 'wishlist' && <WishlistTab />}
         {tab === 'settings' && <SettingsTab />}
 
@@ -128,29 +113,57 @@ export default function Profile() {
   );
 }
 
+function formatJoined(iso, lang) {
+  if (!iso) return '—';
+  const d = new Date(iso.replace(' ', 'T'));
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB', { year: 'numeric', month: 'long' });
+}
+
 /* ── Orders ── */
-function OrdersTab() {
-  const { t } = useLang();
+function OrdersTab({ orders, loading }) {
+  const { t, lang } = useLang();
   const [open, setOpen] = useState(null);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-brand h-20 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-5xl mb-4">📦</div>
+        <h3 className="text-xl mb-2">{t('profile.noOrders')}</h3>
+        <p className="text-brand-ink-soft text-sm mb-6">{t('profile.noOrdersDesc')}</p>
+        <Link to="/shop" className="btn btn-primary">{t('profile.shopNow')}</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {MOCK_ORDERS.map(order => (
+      {orders.map(order => (
         <div key={order.id} className="bg-white rounded-brand shadow-brand-sm overflow-hidden">
           <button
             type="button"
             onClick={() => setOpen(p => p === order.id ? null : order.id)}
-            className="w-full flex items-center justify-between gap-4 p-5 text-right"
+            className="w-full flex items-center justify-between gap-4 p-5 text-start"
           >
             <div className="flex items-center gap-4 flex-wrap">
-              <span className="font-semibold">#{order.id}</span>
+              <span className="font-semibold">{order.number}</span>
               <span className="text-sm text-brand-ink-soft">{order.date}</span>
-              <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_STYLE[order.kind]}`}>
-                {order.status}
+              <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_STYLE[order.status] ?? 'bg-brand-cream text-brand-ink-soft'}`}>
+                {order.status_label}
               </span>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="font-bold text-brand-pink">{order.total}</span>
+              <span className="font-bold text-brand-pink">{formatPrice(order.total, lang)}</span>
               <svg
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
                 className={`w-4 h-4 transition-transform ${open === order.id ? 'rotate-180' : ''}`}
@@ -160,48 +173,60 @@ function OrdersTab() {
             </div>
           </button>
 
-          <div className={`overflow-hidden transition-all duration-300 ${open === order.id ? 'max-h-64' : 'max-h-0'}`}>
+          {open === order.id && (
             <div className="px-5 pb-5 border-t border-brand-line pt-4 space-y-2">
-              {order.items.map((item, i) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <span className="text-brand-ink-soft">{item.name} × {item.qty}</span>
-                  <span className="font-medium">{item.price}</span>
+              {(order.items ?? []).map((item) => (
+                <div key={item.product_id} className="flex justify-between text-sm">
+                  <span className="text-brand-ink-soft">
+                    {item.name} × {digits(item.qty, lang)}
+                  </span>
+                  <span className="font-medium">{formatPrice(item.line_total, lang)}</span>
                 </div>
               ))}
+
               <div className="flex justify-between text-sm pt-2 border-t border-brand-line mt-2">
+                <span className="text-brand-ink-soft">{t('checkout.subtotal')}</span>
+                <span className="font-medium">{formatPrice(order.subtotal, lang)}</span>
+              </div>
+              {order.discount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>{t('cart.discount')}</span>
+                  <span className="font-medium">− {formatPrice(order.discount, lang)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
                 <span className="text-brand-ink-soft">{t('cart.shipping')}</span>
-                <span className="font-medium">٦٠ ج.م</span>
+                <span className="font-medium">{formatPrice(order.shipping, lang)}</span>
               </div>
-              <div className="flex justify-between font-bold">
+              <div className="flex justify-between font-bold pt-2 border-t border-brand-line">
                 <span>{t('cart.total')}</span>
-                <span className="text-brand-pink">{order.total}</span>
+                <span className="text-brand-pink">{formatPrice(order.total, lang)}</span>
               </div>
+
+              {order.address && (
+                <p className="text-xs text-brand-ink-soft pt-2 leading-relaxed">
+                  {order.address.name} — {order.address.phone}
+                  <br />
+                  {order.address.city}، {order.address.address}
+                </p>
+              )}
             </div>
-          </div>
+          )}
         </div>
       ))}
-
-      {MOCK_ORDERS.length === 0 && (
-        <div className="text-center py-16">
-          <div className="text-5xl mb-4">📦</div>
-          <h3 className="text-xl mb-2">{t('profile.noOrders')}</h3>
-          <p className="text-brand-ink-soft text-sm mb-6">{t('profile.noOrdersDesc')}</p>
-          <Link to="/shop" className="btn btn-primary">{t('profile.shopNow')}</Link>
-        </div>
-      )}
     </div>
   );
 }
 
 /* ── Wishlist ── */
 function WishlistTab() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { items, remove } = useWishlist();
   const { add } = useCart();
   const [added, setAdded] = useState(null);
 
-  const handleAdd = (product) => {
-    add(product, 1);
+  const handleAdd = async (product) => {
+    await add(product.id, 1);
     setAdded(product.id);
     setTimeout(() => setAdded(null), 1500);
   };
@@ -226,17 +251,14 @@ function WishlistTab() {
             <button
               onClick={() => remove(product.id)}
               className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-brand-pink hover:bg-[#D64545] hover:text-white transition-all text-sm"
-              aria-label="إزالة"
+              aria-label={t('productCard.removeWish')}
             >❤️</button>
           </div>
           <div className="p-4">
-            <div className="flex items-center gap-1 text-xs mb-1">
-              <span className="text-brand-gold">{starsStr(product.rating)}</span>
-            </div>
-            <Link to={`/product/${product.id}`} className="block text-sm font-semibold hover:text-brand-pink transition-colors mb-1 truncate">
+            <Link to={productPath(product)} className="block text-sm font-semibold hover:text-brand-pink transition-colors mb-1 truncate">
               {product.name}
             </Link>
-            <div className="text-brand-pink font-bold text-sm mb-3">{product.price}</div>
+            <div className="text-brand-pink font-bold text-sm mb-3">{formatPrice(product.price, lang)}</div>
             <button
               onClick={() => handleAdd(product)}
               className={`w-full py-2 rounded-full text-xs font-semibold transition-all ${
@@ -257,15 +279,52 @@ function WishlistTab() {
 /* ── Settings ── */
 function SettingsTab() {
   const { t } = useLang();
-  const [form, setFormState] = useState({ ...MOCK_USER });
+  const { user, updateProfile, updatePassword, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: user?.name ?? '', phone: user?.phone ?? '', email: user?.email ?? '',
+  });
+  const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' });
+  const [errors, setErrors] = useState({});
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const set = (k, v) => { setFormState(p => ({ ...p, [k]: v })); setSaved(false); };
+  const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setSaved(false); setErrors({}); };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    if (saving) return;
+
+    setSaving(true);
+    setErrors({});
+    try {
+      await updateProfile({
+        name: form.name,
+        phone: form.phone || null,
+        email: form.email || null,
+      });
+
+      // Only touch the password when the visitor actually filled the fields.
+      if (passwords.current || passwords.next) {
+        await updatePassword(passwords.current, passwords.next, passwords.confirm || passwords.next);
+        setPasswords({ current: '', next: '', confirm: '' });
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setErrors(err.errors
+        ? Object.fromEntries(Object.entries(err.errors).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]))
+        : { _: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   return (
@@ -274,15 +333,18 @@ function SettingsTab() {
         <span className="text-brand-pink"><UserIcon /></span>
         {t('profile.personalData')}
       </h2>
+
+      {errors._ && <p className="text-sm text-[#D64545] mb-4">{errors._}</p>}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label={t('profile.fullName')}>
+          <Field label={t('profile.fullName')} error={errors.name}>
             <input type="text" value={form.name} onChange={e => set('name', e.target.value)} className={inputCls} />
           </Field>
-          <Field label={t('profile.phone')}>
+          <Field label={t('profile.phone')} error={errors.phone}>
             <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} dir="ltr" className={inputCls} />
           </Field>
-          <Field label={t('profile.email')} className="sm:col-span-2">
+          <Field label={t('profile.email')} error={errors.email} className="sm:col-span-2">
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)} dir="ltr" className={inputCls} />
           </Field>
         </div>
@@ -290,17 +352,25 @@ function SettingsTab() {
         <div className="border-t border-brand-line pt-5 mt-2">
           <h3 className="text-base font-semibold mb-4">{t('profile.changePassword')}</h3>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label={t('profile.currentPass')}>
-              <input type="password" placeholder="••••••••" dir="ltr" className={inputCls} />
+            <Field label={t('profile.currentPass')} error={errors.current_password}>
+              <input
+                type="password" placeholder="••••••••" dir="ltr" className={inputCls}
+                value={passwords.current}
+                onChange={e => setPasswords(p => ({ ...p, current: e.target.value }))}
+              />
             </Field>
-            <Field label={t('profile.newPass')}>
-              <input type="password" placeholder="••••••••" dir="ltr" className={inputCls} />
+            <Field label={t('profile.newPass')} error={errors.password}>
+              <input
+                type="password" placeholder="••••••••" dir="ltr" className={inputCls}
+                value={passwords.next}
+                onChange={e => setPasswords(p => ({ ...p, next: e.target.value, confirm: e.target.value }))}
+              />
             </Field>
           </div>
         </div>
 
         <div className="flex items-center gap-3 pt-2">
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" disabled={saving} className="btn btn-primary disabled:opacity-70">
             {saved ? (
               <span className="flex items-center gap-2">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="w-4 h-4">
@@ -310,9 +380,13 @@ function SettingsTab() {
               </span>
             ) : t('profile.saveChanges')}
           </button>
-          <Link to="/auth" className="btn btn-outline text-[#D64545] border-[#D64545]/20 hover:bg-[#fde8e8] hover:border-[#D64545]">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="btn btn-outline text-[#D64545] border-[#D64545]/20 hover:bg-[#fde8e8] hover:border-[#D64545]"
+          >
             {t('profile.logout')}
-          </Link>
+          </button>
         </div>
       </form>
     </div>
@@ -329,11 +403,12 @@ function Stat({ num, label }) {
   );
 }
 
-function Field({ label, className = '', children }) {
+function Field({ label, error, className = '', children }) {
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-brand-ink mb-1.5">{label}</label>
       {children}
+      {error && <p className="text-xs text-[#D64545] mt-1">{error}</p>}
     </div>
   );
 }

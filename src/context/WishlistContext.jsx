@@ -1,53 +1,50 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import * as wishlistApi from '../services/wishlistService.js';
+import { useAuth } from './AuthContext.jsx';
 
-const STORAGE_KEY = 'akwab.wishlist.v1';
 const WishlistContext = createContext(null);
 
-function reducer(state, action) {
-  switch (action.type) {
-    case 'hydrate':
-      return action.payload || { items: [] };
-    case 'toggle': {
-      const exists = state.items.some(i => i.id === action.product.id);
-      return {
-        items: exists
-          ? state.items.filter(i => i.id !== action.product.id)
-          : [...state.items, action.product],
-      };
-    }
-    case 'remove':
-      return { items: state.items.filter(i => i.id !== action.id) };
-    case 'clear':
-      return { items: [] };
-    default:
-      return state;
-  }
-}
-
+/**
+ * Server-side wishlist, keyed to the visitor's identity (guest or account).
+ * Signing in merges a guest's saved items into the account.
+ */
 export function WishlistProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, { items: [] });
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
+    setLoading(true);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) dispatch({ type: 'hydrate', payload: JSON.parse(raw) });
-    } catch {}
+      setItems(await wishlistApi.getWishlist());
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {}
-  }, [state]);
+    if (authLoading) return;
+    refresh();
+  }, [authLoading, user?.id, refresh]);
+
+  const ids = useMemo(() => new Set(items.map((i) => i.id)), [items]);
 
   const value = useMemo(() => ({
-    items: state.items,
-    count: state.items.length,
-    has: (id) => state.items.some(i => i.id === id),
-    toggle: (product) => dispatch({ type: 'toggle', product }),
-    remove: (id) => dispatch({ type: 'remove', id }),
-    clear: () => dispatch({ type: 'clear' }),
-  }), [state]);
+    items,
+    count: items.length,
+    loading,
+    refresh,
+    has: (productId) => ids.has(productId),
+    toggle: async (productId) => {
+      const res = await wishlistApi.toggleWishlist(productId);
+      setItems(res.items);
+      return res.in_wishlist;
+    },
+    remove: async (productId) => setItems(await wishlistApi.removeWishlist(productId)),
+    clear: async () => { await wishlistApi.clearWishlist(); setItems([]); },
+  }), [items, loading, ids, refresh]);
 
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 }

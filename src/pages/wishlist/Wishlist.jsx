@@ -1,14 +1,26 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useWishlist } from '../../context/WishlistContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
-import { toArabicDigits, starsStr } from '../../utils/arabic.js';
-import { useState } from 'react';
+import { formatPrice, digits } from '../../utils/arabic.js';
+import { productPath } from '../../utils/routes.js';
 import { useLang } from '../../context/LanguageContext.jsx';
 
 export default function Wishlist() {
   const { t, lang } = useLang();
-  const { items, remove, clear, count } = useWishlist();
-  const fmt = (n) => lang === 'ar' ? toArabicDigits(n) : String(n);
+  const { items, remove, clear, count, loading } = useWishlist();
+
+  if (loading) {
+    return (
+      <div className="akwab-container py-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-brand h-80 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -32,7 +44,7 @@ export default function Wishlist() {
           <div>
             <h1 className="text-4xl mb-1">{t('wishlist.title')}</h1>
             <p className="text-brand-ink-soft">
-              {fmt(count)} {count === 1 ? 'منتج' : 'منتجات'} محفوظة
+              {digits(count, lang)} {t('wishlist.saved')}
             </p>
           </div>
           <button
@@ -56,96 +68,63 @@ export default function Wishlist() {
 }
 
 function WishlistCard({ product, onRemove }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { add } = useCart();
   const [added, setAdded] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const handleAdd = () => {
-    if (added) return;
-    add(product, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+  const handleAdd = async () => {
+    if (busy || added) return;
+    setBusy(true);
+    try {
+      await add(product.id, 1);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1500);
+    } catch {
+      // The cart context surfaces the failure; the card stays usable.
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <article className="bg-white rounded-brand shadow-brand-sm hover:shadow-brand-md transition-all overflow-hidden group">
-      <div className="relative">
-        <Link to={`/product/${product.id}`} className={`block aspect-square p-bg-${product.bg || 1}`}>
-          {product.badge && (
-            <span className={`badge badge-${product.badge.kind}`}>{product.badge.text}</span>
-          )}
-          {product.img && (
-            <img
-              src={product.img}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          )}
-        </Link>
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label="إزالة من المفضلة"
-          className="absolute top-3 left-3 z-[2] w-9 h-9 rounded-full bg-white/90 flex items-center justify-center shadow-brand-sm text-brand-pink hover:bg-[#D64545] hover:text-white transition-all"
+    <div className="bg-white rounded-brand shadow-brand-sm overflow-hidden">
+      <Link to={productPath(product)} className={`block relative aspect-square p-bg-${product.bg || 1}`}>
+        {product.img && <img src={product.img} alt={product.name} className="w-full h-full object-cover" />}
+      </Link>
+      <div className="p-4">
+        <Link
+          to={productPath(product)}
+          className="block text-base font-semibold hover:text-brand-pink transition-colors mb-1 truncate"
         >
-          ❤️
-        </button>
-      </div>
-
-      <div className="p-5">
-        <div className="flex items-center gap-2 text-sm mb-1">
-          <span className="text-brand-gold tracking-wider">{starsStr(product.rating)}</span>
-          <small className="text-brand-ink-soft">({product.reviews})</small>
-        </div>
-        <Link to={`/product/${product.id}`} className="block">
-          <h3 className="text-lg mb-1 hover:text-brand-pink transition-colors">{product.name}</h3>
+          {product.name}
         </Link>
-        <p className="text-sm text-brand-ink-soft mb-3">{product.sub}</p>
+        <p className="text-xs text-brand-ink-soft mb-2 truncate">{product.sub}</p>
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-brand-pink font-bold text-lg">{product.price}</span>
-          {product.oldPrice && (
-            <span className="text-sm text-brand-ink-soft line-through">{product.oldPrice}</span>
+          <span className="text-brand-pink font-bold">{formatPrice(product.price, lang)}</span>
+          {product.old_price > 0 && (
+            <span className="text-xs text-brand-ink-soft line-through">
+              {formatPrice(product.old_price, lang)}
+            </span>
           )}
         </div>
-
         <div className="flex gap-2">
           <button
-            type="button"
             onClick={handleAdd}
-            className={`flex-1 py-2.5 rounded-full font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-              added
-                ? 'bg-brand-gold text-white'
-                : 'bg-brand-pink-softer text-brand-pink hover:bg-brand-pink hover:text-white'
+            disabled={busy}
+            className={`flex-1 py-2.5 rounded-full text-xs font-semibold transition-all disabled:opacity-70 ${
+              added ? 'bg-brand-gold text-white' : 'bg-brand-pink-softer text-brand-pink hover:bg-brand-pink hover:text-white'
             }`}
           >
-            {added ? (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="w-4 h-4">
-                  <path d="m5 12 5 5 9-11" />
-                </svg>
-                {t('wishlist.added')}
-              </>
-            ) : (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
-                  <path d="M5 6h16l-2 11H7Z" /><path d="M9 6a3 3 0 0 1 6 0" />
-                </svg>
-                {t('wishlist.addToCart')}
-              </>
-            )}
+            {added ? t('productCard.added') : t('productCard.addToCart')}
           </button>
           <button
-            type="button"
             onClick={onRemove}
-            className="w-10 h-10 rounded-full border border-brand-line flex items-center justify-center text-brand-ink-soft hover:border-[#D64545] hover:text-[#D64545] transition-all"
-            aria-label="إزالة"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="w-4 h-4">
-              <path d="m18 6-12 12M6 6l12 12" />
-            </svg>
-          </button>
+            aria-label={t('productCard.removeWish')}
+            className="w-10 rounded-full border border-brand-line text-brand-ink-soft hover:border-[#D64545] hover:text-[#D64545] transition-colors"
+          >✕</button>
         </div>
       </div>
-    </article>
+    </div>
   );
 }
