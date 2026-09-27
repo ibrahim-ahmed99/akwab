@@ -114,7 +114,7 @@ export default function Categories() {
       </div>
 
       {/* Summary row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="grid-3" style={{ marginBottom: 24 }}>
         <MiniStat label="إجمالي الأقسام"   value={list.meta?.total} bg="p-bg-1" color="#E0478A" />
         <MiniStat label="الأقسام النشطة"   value={activeCount.meta?.total} bg="p-bg-3" color="#C8A84B" />
         <MiniStat label="إجمالي المنتجات"  value={productTotals.data?.total} bg="p-bg-2" color="#89B8D8" />

@@ -102,7 +102,7 @@ export default function Shipping() {
           isEmpty={!cities.length} emptyLabel="لا توجد محافظات"
         >
           <div className="table-wrapper">
-            <table>
+            <table className="table-cards">
               <thead>
                 <tr>
                   <th>المحافظة</th>
@@ -128,10 +128,10 @@ export default function Shipping() {
                           )}
                         </div>
                       </td>
-                      <td style={{ fontSize: 13, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>
+                      <td data-label="السعر الحالي" style={{ fontSize: 13, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>
                         {money(c.value)}
                       </td>
-                      <td>
+                      <td data-label="سعر الشحن (ج.م)">
                         <input
                           type="number" min="0" step="0.5" dir="ltr"
                           className="form-control"

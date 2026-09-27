@@ -181,7 +181,7 @@ export default function Products() {
         >
           <>
             <div className="table-wrapper">
-              <table>
+              <table className="table-cards">
                 <thead>
                   <tr>
                     <th>المنتج</th>
@@ -213,8 +213,8 @@ export default function Products() {
                           </div>
                         </div>
                       </td>
-                      <td><span className="badge badge-pink">{p.category || '—'}</span></td>
-                      <td>
+                      <td data-label="القسم"><span className="badge badge-pink">{p.category || '—'}</span></td>
+                      <td data-label="السعر">
                         <div style={{ fontWeight: 800, color: 'var(--brand-ink)' }}>{money(p.price)}</div>
                         {p.old_price > 0 && (
                           <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', textDecoration: 'line-through' }}>
@@ -222,13 +222,13 @@ export default function Products() {
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td data-label="المخزون">
                         {p.stock > 0
                           ? <span style={{ fontWeight: 800, color: p.stock <= 5 ? 'var(--brand-gold)' : 'var(--brand-ink)' }}>{num(p.stock)}</span>
                           : <span className="badge badge-danger">نفذ</span>}
                       </td>
-                      <td><span className={`badge ${badgeClass(ACTIVE_BADGE, p.status)}`}>{p.status_label}</span></td>
-                      <td>
+                      <td data-label="الحالة"><span className={`badge ${badgeClass(ACTIVE_BADGE, p.status)}`}>{p.status_label}</span></td>
+                      <td className="actions-cell">
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button onClick={() => openEdit(p)} style={iconBtn}>
                             <Edit2 size={13} color="var(--brand-ink-soft)" />

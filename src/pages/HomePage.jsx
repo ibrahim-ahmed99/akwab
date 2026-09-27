@@ -93,7 +93,7 @@ export default function HomePage() {
         loading={sections.loading} error={sections.error} onRetry={sections.reload}
         isEmpty={!items.length} emptyLabel="لا توجد أقسام"
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+        <div className="section-cards-grid">
           {items.map(section => (
             <SectionCard
               key={section.id}

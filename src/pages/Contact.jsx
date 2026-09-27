@@ -118,7 +118,7 @@ export default function Contact() {
       <ContactCards info={info} />
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="grid-3" style={{ marginBottom: 24 }}>
         {[
           { label: 'إجمالي الرسائل', value: stats.data?.total,   bg: 'p-bg-1', color: '#E0478A' },
           { label: 'رسائل جديدة',    value: stats.data?.new,     bg: 'p-bg-4', color: '#6B4E6E' },
@@ -160,7 +160,7 @@ export default function Contact() {
         >
           <>
             <div className="table-wrapper">
-              <table>
+              <table className="table-cards">
                 <thead>
                   <tr>
                     <th>المرسل</th>
@@ -178,15 +178,15 @@ export default function Contact() {
                         <div style={{ fontWeight: 700 }}>{m.name || '—'}</div>
                         <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)' }}>{m.email}</div>
                       </td>
-                      <td style={{ fontWeight: 700, fontSize: 14 }}>{m.subject || '—'}</td>
-                      <td style={{ maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--brand-ink-soft)', fontSize: 13 }}>
+                      <td data-label="الموضوع" style={{ fontWeight: 700, fontSize: 14 }}>{m.subject || '—'}</td>
+                      <td data-label="الرسالة" style={{ maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--brand-ink-soft)', fontSize: 13 }}>
                         {m.message}
                       </td>
-                      <td style={{ fontSize: 12, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>{m.date}</td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td data-label="التاريخ" style={{ fontSize: 12, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>{m.date}</td>
+                      <td data-label="الحالة" onClick={e => e.stopPropagation()}>
                         <span className={`badge ${badgeClass(REQUEST_BADGE, m.status)}`}>{m.status_label}</span>
                       </td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td className="actions-cell" onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button onClick={() => openMsg(m)} style={{
                             background: 'var(--brand-pink-softer)', border: 'none', borderRadius: 10,
@@ -231,7 +231,7 @@ export default function Contact() {
 
             {modalError && <FormError message={modalError} />}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            <div className="grid-2" style={{ gap: 10, marginBottom: 16 }}>
               {[
                 { label: 'المرسل',  value: viewMsg.name },
                 { label: 'البريد',  value: viewMsg.email },
@@ -349,7 +349,7 @@ function ContactCards({ info }) {
 
       {error && <FormError message={error} />}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+      <div className="grid-4">
         {CARD_ORDER.map(key => {
           const card  = cards[key]
           const style = CARD_STYLE[key]

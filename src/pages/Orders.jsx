@@ -87,7 +87,7 @@ export default function Orders() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="grid-4" style={{ marginBottom: 24 }}>
         {[
           { label: 'إجمالي الطلبات',   value: stats.data && num(stats.data.total),                                    bg: 'p-bg-1', color: '#E0478A' },
           { label: 'إيرادات مكتملة',   value: stats.data && money(stats.data.revenue_completed),                      bg: 'p-bg-3', color: '#C8A84B' },
@@ -144,7 +144,7 @@ export default function Orders() {
         >
           <>
             <div className="table-wrapper">
-              <table>
+              <table className="table-cards">
                 <thead>
                   <tr>
                     <th>رقم الطلب</th>
@@ -161,19 +161,19 @@ export default function Orders() {
                   {orders.map(o => (
                     <tr key={o.id}>
                       <td><span style={{ fontWeight: 800, color: 'var(--brand-pink)', fontSize: 13 }}>{o.number}</span></td>
-                      <td style={{ fontWeight: 700 }}>{o.customer || '—'}</td>
-                      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--brand-ink-soft)' }}>
+                      <td data-label="العميل" style={{ fontWeight: 700 }}>{o.customer || '—'}</td>
+                      <td data-label="المنتج" style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--brand-ink-soft)' }}>
                         {o.product || '—'}
                       </td>
-                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{o.qty}</td>
-                      <td style={{ fontWeight: 800 }}>{money(o.amount)}</td>
-                      <td style={{ color: 'var(--brand-ink-soft)', fontSize: 13, whiteSpace: 'nowrap' }}>{o.date}</td>
-                      <td>
+                      <td data-label="الكمية" style={{ textAlign: 'center', fontWeight: 700 }}>{o.qty}</td>
+                      <td data-label="المبلغ" style={{ fontWeight: 800 }}>{money(o.amount)}</td>
+                      <td data-label="التاريخ" style={{ color: 'var(--brand-ink-soft)', fontSize: 13, whiteSpace: 'nowrap' }}>{o.date}</td>
+                      <td data-label="الحالة">
                         <span className={`badge ${badgeClass(ORDER_BADGE, o.status)}`}>
                           {STATUS_ICON[o.status]} {o.status_label}
                         </span>
                       </td>
-                      <td>
+                      <td className="actions-cell">
                         <button onClick={() => setViewId(o.id)} style={{
                           background: 'var(--brand-pink-softer)', border: 'none',
                           borderRadius: 10, width: 32, height: 32,
@@ -217,7 +217,7 @@ export default function Orders() {
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+                <div className="grid-2" style={{ gap: 10, marginBottom: 16 }}>
                   {[
                     { label: 'العميل',       value: order.shipping_address?.name || order.customer_details?.name },
                     { label: 'الهاتف',       value: order.shipping_address?.phone || order.customer_details?.phone },

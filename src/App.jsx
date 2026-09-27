@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { BadgesProvider } from './context/BadgesContext'
@@ -33,15 +33,29 @@ const pageTitles = {
 /** Layout route — the matched child page renders through <Outlet />. */
 function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const location = useLocation()
   const title = pageTitles[location.pathname] || 'الرئيسية'
+
+  useEffect(() => { setMobileNavOpen(false) }, [location.pathname])
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [mobileNavOpen])
 
   return (
     <BadgesProvider>
       <div className="layout">
-        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed(!collapsed)}
+          mobileOpen={mobileNavOpen}
+          onMobileClose={() => setMobileNavOpen(false)}
+        />
+        {mobileNavOpen && <div className="sidebar-overlay" onClick={() => setMobileNavOpen(false)} />}
         <div className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}>
-          <Header title={title} />
+          <Header title={title} onMenuClick={() => setMobileNavOpen(true)} />
           <div className="page-body">
             <Outlet />
           </div>

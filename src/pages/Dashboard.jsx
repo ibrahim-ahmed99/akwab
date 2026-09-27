@@ -166,7 +166,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Bottom row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 20 }}>
+      <div className="grid-split">
 
         {/* Recent Orders */}
         <div className="card">
@@ -185,7 +185,7 @@ export default function Dashboard() {
             isEmpty={!recentRows.length} emptyLabel="لا توجد طلبات بعد"
           >
             <div className="table-wrapper">
-              <table>
+              <table className="table-cards">
                 <thead>
                   <tr>
                     <th>رقم الطلب</th>
@@ -201,12 +201,12 @@ export default function Dashboard() {
                       <td>
                         <span style={{ fontWeight: 800, color: 'var(--brand-pink)', fontSize: 13 }}>{o.number}</span>
                       </td>
-                      <td style={{ fontWeight: 600 }}>{o.customer || '—'}</td>
-                      <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--brand-ink-soft)' }}>
+                      <td data-label="العميل" style={{ fontWeight: 600 }}>{o.customer || '—'}</td>
+                      <td data-label="المنتج" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--brand-ink-soft)' }}>
                         {o.product || '—'}
                       </td>
-                      <td style={{ fontWeight: 800 }}>{money(o.amount)}</td>
-                      <td>
+                      <td data-label="المبلغ" style={{ fontWeight: 800 }}>{money(o.amount)}</td>
+                      <td data-label="الحالة">
                         <span className={`badge ${badgeClass(ORDER_BADGE, o.status)}`}>{o.status_label}</span>
                       </td>
                     </tr>

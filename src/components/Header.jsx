@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { LogOut, Loader2 } from 'lucide-react'
+import { LogOut, Loader2, Menu } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
-export default function Header({ title }) {
+export default function Header({ title, onMenuClick }) {
   const { admin, logout } = useAuth()
   const [leaving, setLeaving] = useState(false)
 
@@ -13,28 +13,33 @@ export default function Header({ title }) {
   }
 
   return (
-    <header style={{
+    <header className="app-header" style={{
       height: 68,
       background: '#fff',
       borderBottom: '2px solid var(--brand-line)',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 28px',
-      gap: 16,
       position: 'sticky',
       top: 0,
       zIndex: 50,
       boxShadow: 'var(--shadow-sm)',
     }}>
+      <button className="header-hamburger" onClick={onMenuClick} aria-label="فتح القائمة">
+        <Menu size={18} color="var(--brand-ink)" />
+      </button>
+
       <h2 style={{
         flex: 1,
         fontFamily: 'Amiri, serif',
         fontSize: 20,
         fontWeight: 700,
         color: 'var(--brand-ink)',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       }}>{title}</h2>
 
-      <div style={{
+      <div className="app-header-date" style={{
         fontSize: 12, color: 'var(--brand-ink-soft)', fontWeight: 600,
         background: 'var(--brand-cream)',
         padding: '7px 14px',
@@ -49,7 +54,7 @@ export default function Header({ title }) {
 
       {admin && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>{admin.name}</span>
+          <span className="app-header-admin-name" style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>{admin.name}</span>
           <button
             onClick={handleLogout}
             disabled={leaving}

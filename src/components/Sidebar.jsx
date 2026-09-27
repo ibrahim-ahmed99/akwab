@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingCart, Tag,
-  Users, Phone, Info, ChevronLeft, Menu, Home, ClipboardList, Truck
+  Users, Phone, Info, ChevronLeft, Menu, X, Home, ClipboardList, Truck
 } from 'lucide-react'
 import { useBadges } from '../context/BadgesContext'
 import { useAuth } from '../context/AuthContext'
@@ -19,24 +19,25 @@ const navItems = [
   { to: '/about',      icon: Info,            label: 'من نحن' },
 ]
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
   const { badges } = useBadges()
   const { admin } = useAuth()
   return (
-    <aside style={{
-      position: 'fixed',
-      top: 0,
-      right: 0,
-      height: '100vh',
-      width: collapsed ? '72px' : '264px',
-      background: '#3D2540',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
-      zIndex: 100,
-      overflow: 'hidden',
-      boxShadow: '0 0 40px rgba(61,37,64,0.25)',
-    }}>
+    <aside
+      className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}
+      style={{
+        '--sidebar-w': collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)',
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        height: '100vh',
+        background: '#3D2540',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 100,
+        overflow: 'hidden',
+        boxShadow: '0 0 40px rgba(61,37,64,0.25)',
+      }}>
 
       {/* ── Logo bar ── */}
       <div style={{
@@ -81,7 +82,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         )}
 
         <button
-          onClick={onToggle}
+          onClick={() => (mobileOpen ? onMobileClose() : onToggle())}
           style={{
             background: 'rgba(240,227,232,0.08)',
             border: '1.5px solid rgba(240,227,232,0.12)',
@@ -94,7 +95,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(224,71,138,0.2)'; e.currentTarget.style.color = '#E0478A' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(240,227,232,0.08)'; e.currentTarget.style.color = 'rgba(240,227,232,0.55)' }}
         >
-          <Menu size={16} />
+          {mobileOpen ? <X size={16} /> : <Menu size={16} />}
         </button>
       </div>
 

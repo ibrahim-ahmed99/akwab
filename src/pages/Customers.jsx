@@ -120,7 +120,7 @@ export default function Customers() {
         >
           <>
             <div className="table-wrapper">
-              <table>
+              <table className="table-cards">
                 <thead>
                   <tr>
                     <th>العميل</th>
@@ -148,18 +148,18 @@ export default function Customers() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontSize: 13, color: 'var(--brand-ink-soft)' }}>{c.email || '—'}</td>
-                      <td style={{ fontSize: 13 }}>{c.phone || '—'}</td>
-                      <td>{c.city || '—'}</td>
-                      <td style={{ textAlign: 'center', fontWeight: 800, color: 'var(--brand-pink)' }}>{num(c.orders)}</td>
-                      <td style={{ fontWeight: 800 }}>{money(c.spent)}</td>
-                      <td>
+                      <td data-label="البريد الإلكتروني" style={{ fontSize: 13, color: 'var(--brand-ink-soft)' }}>{c.email || '—'}</td>
+                      <td data-label="الهاتف" style={{ fontSize: 13 }}>{c.phone || '—'}</td>
+                      <td data-label="المدينة">{c.city || '—'}</td>
+                      <td data-label="الطلبات" style={{ textAlign: 'center', fontWeight: 800, color: 'var(--brand-pink)' }}>{num(c.orders)}</td>
+                      <td data-label="الإنفاق الكلي" style={{ fontWeight: 800 }}>{money(c.spent)}</td>
+                      <td data-label="الحالة">
                         <span className={`badge ${badgeClass(CUSTOMER_BADGE, c.status)}`}>
                           {c.status === 'vip' && <Star size={11} fill="currentColor" />}
                           {c.status_label}
                         </span>
                       </td>
-                      <td>
+                      <td className="actions-cell">
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button onClick={() => openEdit(c)} style={iconBtn}>
                             <Edit2 size={13} color="var(--brand-ink-soft)" />

@@ -100,7 +100,7 @@ function FormContent() {
     <>
       {error && <FormError message={error} />}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="grid-2" style={{ gap: 24, alignItems: 'start' }}>
 
         {/* ══════════ CARD 1 ══════════ */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -279,7 +279,7 @@ function Submissions() {
   return (
     <>
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div className="grid-4" style={{ marginBottom: 20 }}>
         {[
           { label: 'إجمالي الطلبات', value: stats.data?.total,     bg: 'p-bg-1', color: '#E0478A' },
           { label: 'جديد',           value: stats.data?.new,       bg: 'p-bg-4', color: '#6B4E6E' },
@@ -316,7 +316,7 @@ function Submissions() {
         >
           <>
             <div className="table-wrapper">
-              <table>
+              <table className="table-cards">
                 <thead>
                   <tr>
                     <th>الاسم</th>
@@ -332,14 +332,14 @@ function Submissions() {
                   {rows.map(r => (
                     <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => setView(r)}>
                       <td style={{ fontWeight: 700 }}>{r.name || '—'}</td>
-                      <td style={{ fontSize: 13 }}>{r.phone || '—'}</td>
-                      <td>{r.governorate || '—'}</td>
-                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{r.quantity ?? '—'}</td>
-                      <td style={{ fontSize: 12, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>{r.date}</td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td data-label="الهاتف" style={{ fontSize: 13 }}>{r.phone || '—'}</td>
+                      <td data-label="المحافظة">{r.governorate || '—'}</td>
+                      <td data-label="الكمية" style={{ textAlign: 'center', fontWeight: 700 }}>{r.quantity ?? '—'}</td>
+                      <td data-label="التاريخ" style={{ fontSize: 12, color: 'var(--brand-ink-soft)', whiteSpace: 'nowrap' }}>{r.date}</td>
+                      <td data-label="الحالة" onClick={e => e.stopPropagation()}>
                         <span className={`badge ${badgeClass(REQUEST_BADGE, r.status)}`}>{r.status_label}</span>
                       </td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td className="actions-cell" onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button onClick={() => setView(r)} style={{
                             background: 'var(--brand-pink-softer)', border: 'none', borderRadius: 10,
@@ -382,7 +382,7 @@ function Submissions() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            <div className="grid-2" style={{ gap: 10, marginBottom: 16 }}>
               {[
                 { label: 'الاسم',     value: view.name },
                 { label: 'الهاتف',    value: view.phone },

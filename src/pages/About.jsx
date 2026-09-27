@@ -144,7 +144,7 @@ export default function About() {
             <div style={{ display: 'grid', gap: 10, maxWidth: 460 }}>
               <input className="form-control" placeholder="اسم الشركة" value={draft.companyName} onChange={e => set('companyName', e.target.value)} />
               <input className="form-control" placeholder="الشعار" value={draft.tagline} onChange={e => set('tagline', e.target.value)} />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div className="grid-2" style={{ gap: 10 }}>
                 <input className="form-control" placeholder="سنة التأسيس" value={draft.founded} onChange={e => set('founded', e.target.value)} />
                 <input className="form-control" placeholder="عدد الموظفين" value={draft.employees} onChange={e => set('employees', e.target.value)} />
               </div>
@@ -206,7 +206,7 @@ export default function About() {
       </div>
 
       {/* About + Contact info */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+      <div className="grid-2" style={{ gap: 20, marginBottom: 24 }}>
 
         <div className="card">
           <div className="card-title">عن {info.companyName || 'الشركة'}</div>
@@ -314,9 +314,9 @@ export default function About() {
         {editMode ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {draft.team_members.map((m, i) => (
-              <div key={i} style={{
+              <div key={i} className="team-editor-row" style={{
                 border: '2px solid var(--brand-line)', borderRadius: 'var(--radius-brand-sm)',
-                padding: 16, display: 'grid', gridTemplateColumns: '160px 1fr auto', gap: 14, alignItems: 'start',
+                padding: 16,
               }}>
                 <div style={{ marginBottom: -18 }}>
                   <ImageUploader
@@ -333,7 +333,7 @@ export default function About() {
                   <textarea className="form-control" rows={2} placeholder="نبذة"
                     value={m.bio ?? ''} onChange={e => setListItem('team_members', i, 'bio', e.target.value)} />
                 </div>
-                <button onClick={() => removeListItem('team_members', i)} style={removeBtn}>
+                <button className="remove-row-btn" onClick={() => removeListItem('team_members', i)} style={removeBtn}>
                   <Trash2 size={14} color="var(--error)" />
                 </button>
               </div>
@@ -413,7 +413,7 @@ function ListEditor({ rows, onRemove, columns, render }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {rows.map((row, i) => (
-        <div key={i} style={{
+        <div key={i} className="list-editor-row" style={{
           display: 'grid', gridTemplateColumns: `${columns} auto`,
           gap: 10, alignItems: 'center',
         }}>
