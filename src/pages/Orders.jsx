@@ -33,7 +33,9 @@ const UPDATE_OPTIONS = [
 
 export default function Orders() {
   const [search, setSearch]   = useState('')
-  const [filter, setFilter]   = useState('')       // '' = الكل, otherwise an Arabic label
+  // '' = الكل; otherwise a comma-separated list of canonical status keys
+  // (e.g. "confirmed,processing" for جاري) — never a display label.
+  const [filter, setFilter]   = useState('')
   const [page, setPage]       = useState(1)
   const [viewId, setViewId]   = useState(null)
   const [updating, setUpdating] = useState(false)
@@ -53,7 +55,8 @@ export default function Orders() {
   const orders = list.data ?? []
   const tabs = [
     { label: 'الكل', value: '', count: stats.data?.total },
-    ...(stats.data?.counts_by_status ?? []).map(c => ({ label: c.label, value: c.label, count: c.count })),
+    // value is the tab's canonical keys joined — decoupled from the Arabic label.
+    ...(stats.data?.counts_by_status ?? []).map(c => ({ label: c.label, value: (c.keys ?? []).join(','), count: c.count })),
   ]
 
   const updateStatus = async (status) => {
@@ -231,6 +234,19 @@ export default function Orders() {
                     </div>
                   ))}
                 </div>
+
+                {/* Payment receipt (InstaPay / wallet) */}
+                {order.payment_receipt && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, color: 'var(--brand-ink-soft)', marginBottom: 8 }}>إيصال التحويل</div>
+                    <a href={order.payment_receipt} target="_blank" rel="noreferrer">
+                      <img src={order.payment_receipt} alt="إيصال التحويل" style={{
+                        maxWidth: 220, maxHeight: 260, borderRadius: 'var(--radius-brand-sm)',
+                        border: '2px solid var(--brand-line)', objectFit: 'cover', cursor: 'zoom-in',
+                      }} />
+                    </a>
+                  </div>
+                )}
 
                 {/* Items */}
                 <div style={{

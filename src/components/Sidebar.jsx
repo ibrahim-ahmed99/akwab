@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingCart, Tag,
-  Users, Phone, Info, ChevronLeft, Menu, Home, ClipboardList
+  Users, Phone, Info, ChevronLeft, Menu, Home, ClipboardList, Truck
 } from 'lucide-react'
 import { useBadges } from '../context/BadgesContext'
 import { useAuth } from '../context/AuthContext'
@@ -12,6 +12,7 @@ const navItems = [
   { to: '/categories', icon: Tag,             label: 'الأقسام' },
   { to: '/products',   icon: Package,         label: 'المنتجات' },
   { to: '/orders',     icon: ShoppingCart,    label: 'الأوردرات' },
+  { to: '/shipping',   icon: Truck,           label: 'أسعار الشحن' },
   { to: '/customers',  icon: Users,           label: 'العملاء' },
   { to: '/form',       icon: ClipboardList,   label: 'النموذج' },
   { to: '/contact',    icon: Phone,           label: 'التواصل' },

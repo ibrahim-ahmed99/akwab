@@ -15,7 +15,7 @@ const BG = ['p-bg-1', 'p-bg-2', 'p-bg-3', 'p-bg-4']
 
 const EMPTY = {
   name: '', subtitle: '', category_id: '',
-  price: '', old_price: '', status: 'active',
+  price: '', old_price: '', stock: '', status: 'active',
   description: '', specifications: '',
   images: [],
 }
@@ -65,6 +65,7 @@ export default function Products() {
       category_id: p.category_id ?? '',
       price: p.price ?? '',
       old_price: p.old_price ?? '',
+      stock: p.stock ?? 0,
       status: p.status ?? 'active',
       description: p.description ?? '',
       specifications: p.specifications ?? '',
@@ -87,6 +88,7 @@ export default function Products() {
         category_id: Number(form.category_id),
         price: form.price === '' ? 0 : Number(form.price),
         old_price: form.old_price === '' ? null : Number(form.old_price),
+        stock: form.stock === '' ? 0 : Number(form.stock),
         description: form.description || null,
         specifications: form.specifications || null,
         status: form.status,
@@ -131,12 +133,13 @@ export default function Products() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'إجمالي المنتجات', value: stats.data?.total,      bg: 'p-bg-1', color: '#E0478A' },
-          { label: 'متاح',            value: stats.data?.active,     bg: 'p-bg-3', color: '#C8A84B' },
-          { label: 'غير متاح',        value: stats.data?.inactive,   bg: 'p-bg-2', color: '#89B8D8' },
-          { label: 'عليها خصم',       value: stats.data?.discounted, bg: 'p-bg-4', color: '#6B4E6E' },
+          { label: 'إجمالي المنتجات', value: stats.data?.total,        bg: 'p-bg-1', color: '#E0478A' },
+          { label: 'متاح',            value: stats.data?.active,       bg: 'p-bg-3', color: '#C8A84B' },
+          { label: 'غير متاح',        value: stats.data?.inactive,     bg: 'p-bg-2', color: '#89B8D8' },
+          { label: 'عليها خصم',       value: stats.data?.discounted,   bg: 'p-bg-4', color: '#6B4E6E' },
+          { label: 'نفذ المخزون',     value: stats.data?.out_of_stock, bg: 'p-bg-2', color: 'var(--error)' },
         ].map(s => (
           <div key={s.label} className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div className={s.bg} style={{
@@ -184,6 +187,7 @@ export default function Products() {
                     <th>المنتج</th>
                     <th>القسم</th>
                     <th>السعر</th>
+                    <th>المخزون</th>
                     <th>الحالة</th>
                     <th>الإجراءات</th>
                   </tr>
@@ -217,6 +221,11 @@ export default function Products() {
                             {money(p.old_price)}
                           </div>
                         )}
+                      </td>
+                      <td>
+                        {p.stock > 0
+                          ? <span style={{ fontWeight: 800, color: p.stock <= 5 ? 'var(--brand-gold)' : 'var(--brand-ink)' }}>{num(p.stock)}</span>
+                          : <span className="badge badge-danger">نفذ</span>}
                       </td>
                       <td><span className={`badge ${badgeClass(ACTIVE_BADGE, p.status)}`}>{p.status_label}</span></td>
                       <td>
@@ -295,6 +304,11 @@ export default function Products() {
                     value={form.old_price} onChange={e => set('old_price', e.target.value)} />
                 </div>
                 <div className="form-group">
+                  <label className="form-label">الكمية في المخزون</label>
+                  <input className="form-control" type="number" min="0" placeholder="0"
+                    value={form.stock} onChange={e => set('stock', e.target.value)} />
+                </div>
+                <div className="form-group">
                   <label className="form-label">القسم *</label>
                   <select className="form-control" value={form.category_id} onChange={e => set('category_id', e.target.value)}>
                     <option value="" disabled>اختر القسم</option>
@@ -326,10 +340,10 @@ export default function Products() {
               </div>
               <div className="form-group">
                 <label className="form-label">المواصفات الفنية</label>
-                <textarea className="form-control" rows={4} placeholder={'المعالج: Intel Core i9\nالذاكرة: 32GB\nالتخزين: 1TB SSD'}
+                <textarea className="form-control" rows={8} placeholder={'الخامة: خزف / سيراميك\nاللون: وردي فاتح\nالتصميم: جسم دائري مستدير مع قاعدة مستقرة ومقبض جانبي\nالزخرفة: ورود صغيرة متعددة الألوان\nالتشطيب: سطح مرقّط بتأثيرات لونية\nالاستخدام: تقديم القهوة والشاي والمشروبات الساخنة\nالطابع التصميمي: يدوي، ريفي وعصري\nالشكل: انسيابي ومستدير مع مقبض مريح'}
                   value={form.specifications} onChange={e => set('specifications', e.target.value)} />
                 <div style={{ fontSize: 11, color: 'var(--brand-ink-soft)', marginTop: 5 }}>
-                  💡 اكتب كل مواصفة في سطر منفصل
+                  💡 اكتب كل مواصفة في سطر منفصل بصيغة «العنوان: القيمة»
                 </div>
               </div>
 

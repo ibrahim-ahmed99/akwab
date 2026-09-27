@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard'
 import Categories from './pages/Categories'
 import Products from './pages/Products'
 import Orders from './pages/Orders'
+import Shipping from './pages/Shipping'
 import Customers from './pages/Customers'
 import Contact from './pages/Contact'
 import About from './pages/About'
@@ -22,6 +23,7 @@ const pageTitles = {
   '/categories': 'الأقسام',
   '/products':   'المنتجات',
   '/orders':     'الأوردرات',
+  '/shipping':   'أسعار الشحن',
   '/customers':  'العملاء',
   '/form':       'النموذج',
   '/contact':    'التواصل',
@@ -63,6 +65,7 @@ export default function App() {
             <Route path="/categories" element={<Categories />} />
             <Route path="/products" element={<Products />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/shipping" element={<Shipping />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<About />} />
