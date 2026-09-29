@@ -1,68 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLang } from "../../context/LanguageContext.jsx";
 import { useContent } from "../../context/ContentContext.jsx";
-import { getCities } from "../../services/orderService.js";
-import { sendMessage } from "../../services/contentService.js";
-
-
-
-
-
-
-
-const FIELD =
-  "px-4 py-3 rounded-[12px] border border-brand-line font-cairo text-sm text-brand-ink bg-brand-cream outline-none transition-all duration-200 focus:border-brand-pink focus:bg-white focus:shadow-[0_0_0_3px_rgba(224,71,138,.1)] w-full max-w-full block";
 
 export default function Wholesale() {
   const { t } = useLang();
   const { c } = useContent();
-  const [sent, setSent] = useState(false);
-  const [cities, setCities] = useState([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [form, setForm] = useState({
-    name: '', phone: '', governorate: '', quantity: '', notes: '',
-  });
-
-  // The governorate list is the same one checkout ships to.
-  useEffect(() => {
-    getCities().then(setCities).catch(() => setCities([]));
-  }, []);
-
-  const set = (k, v) => { setForm((p) => ({ ...p, [k]: v })); setError(null); };
-
-  /**
-   * Wholesale enquiries are contact messages with a fixed subject, so they land
-   * in the dashboard's Messages screen with the rest of the incoming leads.
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (submitting) return;
-
-    setSubmitting(true);
-    setError(null);
-    try {
-      const lines = [
-        `${c('wholesale.governorate')}: ${form.governorate || '—'}`,
-        `${c('wholesale.quantity')}: ${form.quantity || '—'}`,
-        `${c('wholesale.notes')}: ${form.notes || '—'}`,
-      ];
-
-      await sendMessage({
-        name: form.name.trim(),
-        contact: form.phone.trim(),
-        subject: c('wholesale.badge', 'Wholesale'),
-        message: lines.join('\n'),
-      });
-
-      setSent(true);
-      setForm({ name: '', phone: '', governorate: '', quantity: '', notes: '' });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
   const [lightbox, setLightbox] = useState(null);
 
   return (
@@ -72,8 +14,8 @@ export default function Wholesale() {
           className="reveal rounded-[clamp(22px,3vw,36px)] overflow-hidden border border-brand-pink-soft"
           style={{ background: "linear-gradient(135deg, #FAF5E4 0%, #FCE8F0 100%)" }}
         >
-          <div className="grid md:grid-cols-2 min-w-0">
-            {/* Right side: showcase */}
+          <div className="min-w-0">
+            {/* Showcase */}
             <div className="p-5 md:p-[clamp(36px,5vw,60px)] flex flex-col gap-4 md:gap-5 min-w-0">
               <h2 className="text-[clamp(26px,3.5vw,38px)] leading-snug m-0">
                 <span className="text-brand-pink italic">{c('wholesale.titleHighlight')}</span>
@@ -103,82 +45,8 @@ export default function Wholesale() {
                   </svg>
                   {c('wholesale.contactWa')}
                 </a>
-                <a href="#ws-form" className="btn btn-outline">
-                  {c('wholesale.requestCatalog')}
-                </a>
               </div>
             </div>
-
-            {/* Left side: form */}
-            <form
-              id="ws-form"
-              onSubmit={handleSubmit}
-              className="flex flex-col gap-3.5 border-t md:border-t-0 md:border-r border-brand-line p-5 sm:p-[clamp(28px,4vw,48px)] bg-white min-w-0 overflow-hidden"
-            >
-              <h3 className="text-[22px] mb-1">{c('wholesale.formTitle')}</h3>
-              <p className="text-sm text-brand-ink-soft mb-2.5">
-                {c('wholesale.formDesc')}
-              </p>
-
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-semibold text-brand-ink">{c('wholesale.managerName')}</span>
-                <input
-                  className={FIELD} type="text" required
-                  placeholder={c('wholesale.namePlaceholder')}
-                  value={form.name} onChange={(e) => set('name', e.target.value)}
-                />
-              </label>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-[13px] font-semibold text-brand-ink">{c('wholesale.mobile')}</span>
-                  <input
-                    className={FIELD} type="tel" required
-                    placeholder={c('wholesale.mobileNum')}
-                    value={form.phone} onChange={(e) => set('phone', e.target.value)}
-                  />
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-[13px] font-semibold text-brand-ink">{c('wholesale.governorate')}</span>
-                  <select
-                    className={FIELD} required
-                    value={form.governorate} onChange={(e) => set('governorate', e.target.value)}
-                  >
-                    <option value="" disabled>{c('wholesale.choose')}</option>
-                    {cities.map((city) => <option key={city.id}>{city.name}</option>)}
-                  </select>
-                </label>
-              </div>
-
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-semibold text-brand-ink">{c('wholesale.quantity')}</span>
-                <select
-                  className={FIELD}
-                  value={form.quantity} onChange={(e) => set('quantity', e.target.value)}
-                >
-                  {c('wholesale.quantities', []).map((q) => <option key={q}>{q}</option>)}
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-semibold text-brand-ink">{c('wholesale.notes')}</span>
-                <textarea
-                  className={FIELD} rows="2"
-                  placeholder={c('wholesale.notesPlaceholder')}
-                  value={form.notes} onChange={(e) => set('notes', e.target.value)}
-                />
-              </label>
-
-              {error && <p className="text-xs text-[#D64545]">{error}</p>}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className={`mt-1.5 py-3.5 rounded-[12px] font-bold text-[15px] text-white transition-all duration-[250ms] disabled:opacity-70 ${sent ? "bg-green-500" : "bg-brand-pink hover:bg-[#c93a7a]"}`}
-              >
-                {sent ? c('wholesale.sent') : c('wholesale.submit')}
-              </button>
-            </form>
           </div>
         </div>
       </div>
@@ -225,9 +93,6 @@ function ShowcaseCarousel({ items, onOpen }) {
       }}
     >
       <MarqueeRow items={doubled} direction="left" onOpen={onOpen} />
-      <div className="hidden md:block">
-        <MarqueeRow items={doubled} direction="right" onOpen={onOpen} />
-      </div>
     </div>
   );
 }
