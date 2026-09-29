@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Save, Globe, Phone, Mail, MapPin, Users, Target, Eye, Plus, Trash2, Loader2 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { Loading, ErrorState } from '../components/StateBlock'
-import ImageUploader, { fileUrl } from '../components/ImageUploader'
+import ImageUploader from '../components/ImageUploader'
 import FormError from '../components/FormError'
 import { getAbout, updateAbout } from '../services/settings'
 
@@ -21,12 +21,6 @@ const CONTACT_FIELDS = [
 
 const VALUE_BG = ['p-bg-1', 'p-bg-2', 'p-bg-3', 'p-bg-4']
 const HIGHLIGHT_COLORS = ['#E0478A', '#89B8D8', '#C8A84B', '#6B4E6E']
-const TEAM_GRADIENTS = [
-  'linear-gradient(135deg,#E0478A,#C8A84B)',
-  'linear-gradient(135deg,#89B8D8,#3D2540)',
-  'linear-gradient(135deg,#C8A84B,#E0478A)',
-  'linear-gradient(135deg,#6B4E6E,#89B8D8)',
-]
 
 export default function About() {
   const about = useApi(() => getAbout(), [])
@@ -301,77 +295,6 @@ export default function About() {
             ))}
           </div>
         ) : <EmptyList label="لا توجد قيم مضافة" />}
-      </div>
-
-      {/* Team */}
-      <div className="card">
-        <ListHeader
-          title="فريق العمل"
-          editMode={editMode}
-          onAdd={() => addListItem('team_members', { name: '', role: '', bio: '', image: null })}
-        />
-
-        {editMode ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {draft.team_members.map((m, i) => (
-              <div key={i} className="team-editor-row" style={{
-                border: '2px solid var(--brand-line)', borderRadius: 'var(--radius-brand-sm)',
-                padding: 16,
-              }}>
-                <div style={{ marginBottom: -18 }}>
-                  <ImageUploader
-                    folder="about"
-                    value={m.image}
-                    onChange={image => setListItem('team_members', i, 'image', image)}
-                  />
-                </div>
-                <div style={{ display: 'grid', gap: 10 }}>
-                  <input className="form-control" placeholder="الاسم"
-                    value={m.name ?? ''} onChange={e => setListItem('team_members', i, 'name', e.target.value)} />
-                  <input className="form-control" placeholder="المنصب"
-                    value={m.role ?? ''} onChange={e => setListItem('team_members', i, 'role', e.target.value)} />
-                  <textarea className="form-control" rows={2} placeholder="نبذة"
-                    value={m.bio ?? ''} onChange={e => setListItem('team_members', i, 'bio', e.target.value)} />
-                </div>
-                <button className="remove-row-btn" onClick={() => removeListItem('team_members', i)} style={removeBtn}>
-                  <Trash2 size={14} color="var(--error)" />
-                </button>
-              </div>
-            ))}
-            {!draft.team_members.length && <EmptyList label="لا يوجد أعضاء — اضغط «إضافة»" />}
-          </div>
-        ) : info.team_members.length ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
-            {info.team_members.map((m, i) => (
-              <div key={i} style={{
-                textAlign: 'center', padding: '24px 16px',
-                border: '2px solid var(--brand-line)', borderRadius: 'var(--radius-brand)',
-                background: '#fff', transition: 'transform 0.2s, box-shadow 0.2s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-              >
-                {m.image ? (
-                  <img src={fileUrl('about', m.image)} alt={m.name} style={{
-                    width: 70, height: 70, borderRadius: '50%', objectFit: 'cover',
-                    margin: '0 auto 14px', display: 'block', boxShadow: 'var(--shadow-md)',
-                  }} />
-                ) : (
-                  <div style={{
-                    width: 70, height: 70, borderRadius: '50%', margin: '0 auto 14px',
-                    background: TEAM_GRADIENTS[i % 4],
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 28, color: '#fff', fontWeight: 800, boxShadow: 'var(--shadow-md)',
-                  }}>{(m.name || '?').charAt(0)}</div>
-                )}
-
-                <div style={{ fontFamily: 'Amiri, serif', fontWeight: 700, fontSize: 16, color: 'var(--brand-ink)' }}>{m.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--brand-pink)', fontWeight: 700, margin: '5px 0 8px' }}>{m.role}</div>
-                <div style={{ fontSize: 12, color: 'var(--brand-ink-soft)', lineHeight: 1.6 }}>{m.bio}</div>
-              </div>
-            ))}
-          </div>
-        ) : <EmptyList label="لا يوجد أعضاء فريق" />}
       </div>
     </div>
   )

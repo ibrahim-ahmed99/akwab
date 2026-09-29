@@ -197,7 +197,6 @@ input, select, textarea { font-family: 'Cairo', sans-serif; }
 .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
 .grid-split { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
 .section-cards-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 20px; }
-.team-editor-row { display: grid; grid-template-columns: 160px 1fr auto; gap: 14px; align-items: start; }
 
 /* ─── Tables ──────────────────────────────────────────── */
 .table-wrapper { overflow-x: auto; }
@@ -568,8 +567,6 @@ tbody tr:hover td { background: var(--brand-pink-softer); }
 }
 
 @media (max-width: 640px) {
-  .team-editor-row { grid-template-columns: 1fr; }
-  .team-editor-row .remove-row-btn { justify-self: end; }
   .list-editor-row { grid-template-columns: 1fr !important; gap: 8px; }
 }
 
