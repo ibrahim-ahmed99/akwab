@@ -121,6 +121,7 @@ input, select, textarea { font-family: 'Cairo', sans-serif; }
 .p-bg-2 { background: linear-gradient(135deg, #d8e8f3 0%, #b6d2e5 100%); }
 .p-bg-3 { background: linear-gradient(135deg, #faf5e4 0%, #f0e3c4 100%); }
 .p-bg-4 { background: linear-gradient(135deg, #efe3f0 0%, #d9c4dc 100%); }
+.p-bg-5 { background: linear-gradient(135deg, #dcf3ea 0%, #b8e2ce 100%); }
 
 /* ─── Stats Grid ──────────────────────────────────────── */
 .stats-grid {

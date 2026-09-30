@@ -10,6 +10,10 @@ export const showHomeSection      = (section)        => get(`/home-sections/${se
 export const updateHomeSection    = (section, data)  => put(`/home-sections/${section}`, { data })
 export const setHomeSectionActive = (section, active) => patch(`/home-sections/${section}/active`, { active })
 
+/* ─── Testimonials ("ما يقوله عملاؤنا") ─── */
+export const getTestimonials    = ()     => get('/testimonials')
+export const updateTestimonials = (body) => put('/testimonials', body)
+
 /* ─── Form page content ─── */
 export const getFormContent    = ()     => get('/form-content')
 export const updateFormContent = (body) => put('/form-content', body)

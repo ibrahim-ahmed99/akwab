@@ -1,20 +1,25 @@
 import { useState } from 'react'
 import {
-  Monitor, LayoutGrid, BadgeCheck, Layers,
+  Monitor, LayoutGrid, BadgeCheck, Layers, Palette, MessageSquareQuote,
   Edit2, X, CheckCircle2, Link, Type, AlignLeft, Tag, Loader2,
 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import StateBlock from '../components/StateBlock'
 import FormError from '../components/FormError'
-import { listHomeSections, updateHomeSection, setHomeSectionActive } from '../services/settings'
+import ImageUploader from '../components/ImageUploader'
+import {
+  listHomeSections, updateHomeSection, setHomeSectionActive,
+  getTestimonials, updateTestimonials,
+} from '../services/settings'
 import { relativeTime } from '../services/format'
 
 /* Presentation only — the fields, labels and data all come from the API. */
 const SECTION_STYLE = {
-  hero:     { icon: Monitor,    iconBg: 'p-bg-1', iconColor: '#E0478A' },
-  features: { icon: LayoutGrid, iconBg: 'p-bg-2', iconColor: '#89B8D8' },
-  badge:    { icon: BadgeCheck, iconBg: 'p-bg-3', iconColor: '#C8A84B' },
-  cta:      { icon: Layers,     iconBg: 'p-bg-4', iconColor: '#6B4E6E' },
+  hero:         { icon: Monitor,           iconBg: 'p-bg-1', iconColor: '#E0478A' },
+  features:     { icon: LayoutGrid,        iconBg: 'p-bg-2', iconColor: '#89B8D8' },
+  badge:        { icon: BadgeCheck,        iconBg: 'p-bg-3', iconColor: '#C8A84B' },
+  cta:          { icon: Layers,            iconBg: 'p-bg-4', iconColor: '#6B4E6E' },
+  testimonials: { icon: MessageSquareQuote, iconBg: 'p-bg-5', iconColor: '#2f8f68' },
 }
 const FALLBACK_STYLE = { icon: Layers, iconBg: 'p-bg-1', iconColor: '#E0478A' }
 
@@ -89,11 +94,11 @@ export default function HomePage() {
         )}
       </div>
 
-      <StateBlock
-        loading={sections.loading} error={sections.error} onRetry={sections.reload}
-        isEmpty={!items.length} emptyLabel="لا توجد أقسام"
-      >
-        <div className="section-cards-grid">
+      <div className="section-cards-grid">
+        <StateBlock
+          loading={sections.loading} error={sections.error} onRetry={sections.reload}
+          isEmpty={!items.length} emptyLabel="لا توجد أقسام"
+        >
           {items.map(section => (
             <SectionCard
               key={section.id}
@@ -103,8 +108,10 @@ export default function HomePage() {
               onToggle={() => toggleActive(section)}
             />
           ))}
-        </div>
-      </StateBlock>
+        </StateBlock>
+
+        <TestimonialsCard />
+      </div>
 
       {/* ══════ EDIT MODAL ══════ */}
       {activeSection && (() => {
@@ -144,6 +151,30 @@ export default function HomePage() {
                     index={i} totalFields={activeSection.fields.length} sectionId={activeSection.id}
                   />
                 ))}
+
+                {activeSection.id === 'badge' && (
+                  <>
+                    <ColorField
+                      label="لون البادچ" icon={Palette}
+                      value={formData.color ?? ''}
+                      onChange={v => setFormData(prev => ({ ...prev, color: v }))}
+                    />
+                    <ImageUploader
+                      label="خلفية البادچ" folder="home"
+                      value={formData.background ?? null}
+                      onChange={background => setFormData(prev => ({ ...prev, background }))}
+                    />
+                  </>
+                )}
+
+                {activeSection.id === 'hero' && (
+                  <ImageUploader
+                    label="صور البانر الرئيسي" folder="home"
+                    multiple max={4}
+                    value={formData.images ?? []}
+                    onChange={images => setFormData(prev => ({ ...prev, images }))}
+                  />
+                )}
               </div>
 
               <div style={{ padding: '14px 26px', borderTop: '2px solid var(--brand-line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--brand-cream)', flexShrink: 0 }}>
@@ -293,6 +324,198 @@ function FieldGroup({ field, value, onChange, sectionId, index, totalFields }) {
           </div>
         )}
       </div>
+    </>
+  )
+}
+
+/* ─── ColorField (used by the badge section: text color + background) ─── */
+function ColorField({ label, value, onChange, icon: Icon = Palette }) {
+  const hex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#ffffff'
+  return (
+    <div className="form-group">
+      <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <Icon size={13} color="var(--brand-pink)" /> {label}
+      </label>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <input
+          type="color" value={hex}
+          onChange={e => onChange(e.target.value)}
+          style={{
+            width: 46, height: 44, padding: 3, border: '1.5px solid var(--brand-line)',
+            borderRadius: 10, cursor: 'pointer', background: '#fff', flexShrink: 0,
+          }}
+        />
+        <input
+          className="form-control" type="text" placeholder="#E0478A"
+          value={value} onChange={e => onChange(e.target.value)}
+          style={{ direction: 'ltr', textAlign: 'left' }}
+        />
+      </div>
+      {value?.trim() && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 5 }}>
+          <CheckCircle2 size={12} color="#15803d" />
+          <span style={{ fontSize: 11, color: '#15803d', fontWeight: 600 }}>تم الملء</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── TestimonialsCard — "ما يقوله عملاؤنا": title, subtitle, gallery of images ─── */
+function TestimonialsCard() {
+  const testimonials = useApi(() => getTestimonials(), [])
+
+  const [editing, setEditing] = useState(false)
+  const [form, setForm]       = useState(null)
+  const [saving, setSaving]   = useState(false)
+  const [error, setError]     = useState(null)
+
+  const style  = SECTION_STYLE.testimonials
+  const Icon   = style.icon
+  const data   = testimonials.data ?? {}
+  const images = data.images ?? []
+
+  const filled  = [data.title, data.subtitle, images.length > 0].filter(Boolean).length
+  const percent = Math.round((filled / 3) * 100)
+
+  const openEdit = () => {
+    setForm({ title: data.title ?? '', subtitle: data.subtitle ?? '', images: data.images ?? [] })
+    setError(null)
+    setEditing(true)
+  }
+
+  const handleSave = async () => {
+    if (saving) return
+    setSaving(true)
+    setError(null)
+    try {
+      await updateTestimonials(form)
+      setEditing(false)
+      testimonials.reload()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="card" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
+          <div className={style.iconBg} style={{ width: 46, height: 46, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon size={20} color={style.iconColor} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'Amiri, serif', fontWeight: 700, fontSize: 16, color: 'var(--brand-ink)', marginBottom: 4 }}>ما يقوله عملاؤنا</div>
+            <div style={{ fontSize: 12, color: 'var(--brand-ink-soft)', lineHeight: 1.6 }}>العنوان الرئيسي، العنوان الفرعي، وصور آراء العملاء</div>
+          </div>
+        </div>
+
+        <div style={{ height: '1.5px', background: 'var(--brand-line)', marginBottom: 14 }} />
+
+        {testimonials.error ? (
+          <div style={{ fontSize: 12, color: 'var(--error)', marginBottom: 14 }}>{testimonials.error.message}</div>
+        ) : (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+              <span style={{ fontSize: 12, color: 'var(--brand-ink-soft)', fontWeight: 600 }}>{filled} / 3 حقول</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: percent === 100 ? '#15803d' : percent >= 50 ? '#C8A84B' : 'var(--error)' }}>{percent}%</span>
+            </div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{
+                width: `${percent}%`,
+                background: percent === 100 ? 'linear-gradient(90deg,#16a34a,#15803d)' : percent >= 50 ? 'linear-gradient(90deg,#C8A84B,#a8893a)' : 'linear-gradient(90deg,#E0478A,#cc3a7a)',
+              }} />
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 12, color: 'var(--brand-ink-soft)' }}>{images.length} صورة</span>
+          <button onClick={openEdit} disabled={testimonials.loading} style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '8px 18px', borderRadius: 10, border: 'none',
+            background: '#1e3a2f', color: '#fff', fontFamily: 'Cairo', fontWeight: 700, fontSize: 13, transition: 'background 0.2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = '#16a34a'}
+            onMouseLeave={e => e.currentTarget.style.background = '#1e3a2f'}
+          >
+            <Edit2 size={14} /> تعديل
+          </button>
+        </div>
+      </div>
+
+      {editing && form && (
+        <div className="modal-overlay" onClick={() => !saving && setEditing(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#fff', borderRadius: 'var(--radius-brand)',
+            width: '100%', maxWidth: 600, maxHeight: '90vh',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: 'var(--shadow-lg)', animation: 'modalIn 0.22s cubic-bezier(0.34,1.56,0.64,1)', overflow: 'hidden',
+          }}>
+            <div style={{ padding: '20px 26px', borderBottom: '2px solid var(--brand-line)', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+              <div className={style.iconBg} style={{ width: 44, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={20} color={style.iconColor} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: 17 }}>تعديل — ما يقوله عملاؤنا</h2>
+                <p style={{ fontSize: 12, color: 'var(--brand-ink-soft)', marginTop: 3, fontFamily: 'Cairo' }}>العنوان، العنوان الفرعي، وصور آراء العملاء</p>
+              </div>
+              <button onClick={() => setEditing(false)} style={{
+                background: 'var(--brand-cream)', border: '1.5px solid var(--brand-line)',
+                borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <X size={17} color="var(--brand-ink-soft)" />
+              </button>
+            </div>
+
+            <div style={{ overflowY: 'auto', padding: '22px 26px', flex: 1 }}>
+              {error && <FormError message={error} />}
+
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <Type size={13} color="var(--brand-pink)" /> العنوان الرئيسي
+                </label>
+                <input className="form-control" type="text"
+                  placeholder="مثال: ما يقوله عملاؤنا"
+                  value={form.title}
+                  onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <AlignLeft size={13} color="var(--brand-pink)" /> العنوان الفرعي
+                </label>
+                <input className="form-control" type="text"
+                  placeholder="مثال: آراء حقيقية من عملاء حقيقيين"
+                  value={form.subtitle}
+                  onChange={e => setForm(prev => ({ ...prev, subtitle: e.target.value }))}
+                />
+              </div>
+
+              <ImageUploader
+                label="صور العملاء" folder="home"
+                multiple max={10}
+                value={form.images}
+                onChange={images => setForm(prev => ({ ...prev, images }))}
+              />
+            </div>
+
+            <div style={{ padding: '14px 26px', borderTop: '2px solid var(--brand-line)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', background: 'var(--brand-cream)', flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button className="btn btn-outline" onClick={() => setEditing(false)} disabled={saving}>إلغاء</button>
+                <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+                  {saving
+                    ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> جاري الحفظ...</>
+                    : 'حفظ التعديلات'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
