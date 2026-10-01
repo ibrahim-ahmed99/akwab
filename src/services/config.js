@@ -28,3 +28,9 @@ export const STOREFRONT_API = `${CONFIG.API_BASE_URL}/api`;
 
 export const TOKEN_KEY = 'akwab.token.v1';
 export const USER_KEY = 'akwab.user.v1';
+
+/** Builds the URL for a homepage-content image filename (badge background, hero images, ...). */
+export function buildHomeAssetUrl(filename) {
+  if (!filename) return '';
+  return `${CONFIG.API_BASE_URL}/home/${filename}`;
+}

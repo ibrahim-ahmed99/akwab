@@ -1,10 +1,17 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../../context/LanguageContext.jsx';
 import { useContent } from '../../context/ContentContext.jsx';
+import { buildHomeAssetUrl } from '../../services/config.js';
 
 export default function Hero() {
   const { t } = useLang();
   const { c } = useContent();
+
+  const badgeText = c('hero.badge');
+  const badgeColor = c('badge.color', '');
+  const badgeBackground = c('badge.background', '');
+  const heroImages = c('hero.images', []);
 
   return (
     <section className="relative py-12 md:py-20 overflow-hidden">
@@ -15,8 +22,15 @@ export default function Hero() {
         }}
       />
 
+      {Array.isArray(heroImages) && heroImages.length > 0 && (
+        <div className="akwab-container relative mb-8 md:mb-10">
+          <HeroImagesSlider images={heroImages} />
+        </div>
+      )}
+
       <div className="akwab-container grid md:grid-cols-[1.1fr_1fr] gap-12 md:gap-16 items-center relative">
         <div className="reveal">
+          {badgeText && <HeroBadge text={badgeText} color={badgeColor} background={badgeBackground} />}
           <h1 className="text-[clamp(36px,5.5vw,68px)] font-bold leading-[1.15] my-5">
             {c('hero.line1')}
             <br />
@@ -79,6 +93,70 @@ function FloatCard({ cls, style, tag, tagColor, bg, img, name, price }) {
       </div>
       <h4 className="font-amiri text-[18px] mb-1.5">{name}</h4>
       <div className="text-brand-pink font-bold text-[16px]">{price}</div>
+    </div>
+  );
+}
+
+function HeroBadge({ text, color, background }) {
+  const bgUrl = buildHomeAssetUrl(background);
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 px-3.5 py-1.5 mb-4 rounded-full text-[13px] font-bold border ${
+        bgUrl ? 'text-white border-transparent bg-cover bg-center' : 'text-brand-pink border-brand-pink-soft bg-brand-pink-softer'
+      }`}
+      style={
+        bgUrl
+          ? { backgroundImage: `linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)), url(${bgUrl})`, color: color || undefined }
+          : { color: color || undefined }
+      }
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: color || 'currentColor' }}
+      />
+      {text}
+    </span>
+  );
+}
+
+function HeroImagesSlider({ images }) {
+  const [active, setActive] = useState(0);
+  const urls = images.map(buildHomeAssetUrl).filter(Boolean);
+
+  useEffect(() => {
+    if (urls.length < 2) return undefined;
+    const id = setInterval(() => setActive((i) => (i + 1) % urls.length), 4000);
+    return () => clearInterval(id);
+  }, [urls.length]);
+
+  if (urls.length === 0) return null;
+
+  return (
+    <div className="relative h-[200px] md:h-[260px] rounded-brand overflow-hidden shadow-brand-md">
+      {urls.map((url, i) => (
+        <img
+          key={url + i}
+          src={url}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+          style={{ opacity: i === active ? 1 : 0 }}
+        />
+      ))}
+
+      {urls.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-[1]">
+          {urls.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`${i + 1}`}
+              onClick={() => setActive(i)}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${i === active ? 'w-4 bg-white' : 'bg-white/60'}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
